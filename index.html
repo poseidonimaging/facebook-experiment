@@ -6,13 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- Le styles -->
-    <link href="css/bootstrap.css" rel="stylesheet">
+    <link href="css/bootstrap.css" rel="stylesheet" />
+    <link href="css/application.css" rel="stylesheet" />
     <style>
       body {
         padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
       }
     </style>
-    <link href="css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="css/bootstrap-responsive.css" rel="stylesheet" />
 
     <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
     <!--[if lt IE 9]>
@@ -36,13 +37,28 @@
     </div>
 
     <div class="container">
-      <div class="hero-unit">
+      <div id="welcome" class="hero-unit">
 
         <h1>Facebook Experiment</h1>
         <p>Let us squeeze some insights out of the places you've been lately by logging into Facebook.</p>
+        <p>
+          We ask for permission to read your status messages, photos, and checkins, including when your friends have tagged you at places.
+          We only read the location data and don't do anything with the text.
+        </p>
 
         <p><button id="fb-login" class="btn btn-primary">Let's do it!</button></p>
       </div> <!-- /container -->
+    </div>
+
+    <ul id="places" class="thumbnails">
+    </ul>
+
+    <!-- this is the template object we will be filling in with place info -->
+    <div id="place_template">
+      <li>
+        <a href="" class="thumbnail"><img src="http://placehold.it/300x200" alt="" /></a>
+        <h3></h3>
+      </li>
     </div>
 
     <!-- Le javascript
