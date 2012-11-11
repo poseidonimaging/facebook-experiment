@@ -1,0 +1,14 @@
+--- 
+applications: 
+  .: 
+    mem: 128M
+    framework: 
+      info: 
+        mem: 128M
+        description: PHP Application
+        exec: 
+      name: php
+    url: fb.restlessnapkin.com
+    name: restnap-facebook-experiment
+    instances: 1
+    infra: aws
