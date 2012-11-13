@@ -1,3 +1,7 @@
 #place_template { display: none; }
 .fb-picture		{ min-width: 150px; max-width: 150px; }
 .fb-visit-count { font-size: 200%; color: #777; }
+
+/* Style address info */
+.street-address:after 	{ content: ","; }
+.locality:after 		{ content: ","; }
