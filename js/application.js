@@ -45,19 +45,28 @@ function get_locations_from_url(url) {
 				tags.push(result.data[i].from);
 			}
 
+			// Set up root place LI.
 			$place.attr("id", "place_" + result.data[i].place.id);
 			$place.attr("data-facebook-id", result.data[i].place.id); // Not using .data() because we need to be able to use a selector to find it.
 			$place.addClass("vcard");
 
+			// Set place name.
 			$place.find("h4 span").text(result.data[i].place.name);
+
+			// Set timestamp.
 			$place.find("time")
 				.addClass("timeago")
 				.attr("datetime", result.data[i].created_time)
 				.text((new Date(result.data[i].created_time)).toString());
 
-			// Hide the been with list.
-			$place.find(".fb-been-with").hide();
+			// Set the place photo.
+			$place.find("img").attr("src", "https://graph.facebook.com/" + result.data[i].place.id + "/picture?width=150&height=150");
 
+			// Hide some stuff that might not always show up.
+			$place.find(".fb-been-with").hide();
+			$place.find(".fb-about").hide();
+
+			// Populate tags list.
 			if (tags.length > 0) {
 				for (var t = 0; t < tags.length; t++) {
 					// Don't add yourself.
@@ -71,6 +80,8 @@ function get_locations_from_url(url) {
 				}
 			}
 
+			// Go get the about information.
+
 			// so we can fade it in after adding it.
 			$place.hide();
 
@@ -82,6 +93,14 @@ function get_locations_from_url(url) {
 		$("time.timeago").timeago();
 	});
 }
+
+// Gets the place info for the ID
+function update_place_info(place_id) {
+	FB.api("/" + place_id + "?fields=about", function (result) {
+		$("#place_" + place_id + " .fb-about").text(result.about).fadeIn();
+	});
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 
