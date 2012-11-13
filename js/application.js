@@ -65,6 +65,7 @@ function get_locations_from_url(url) {
 			// Hide some stuff that might not always show up.
 			$place.find(".fb-been-with").hide();
 			$place.find(".fb-about").hide();
+			$place.find(".tel").hide();
 			$place.find(".adr, .adr *").hide();
 
 			// Populate tags list.
@@ -87,7 +88,7 @@ function get_locations_from_url(url) {
 				$place.find(".adr .locality").show().text(result.data[i].place.location.city);
 
 				if (result.data[i].place.location.street) {
-					$place.find(".adr .street-address").show().text(result.data[i].place.location.street);
+					$place.find(".adr .street-address").show().text(result.data[i].place.location.street.replace(/(\n|\r|\s)+$/, ''));
 				}
 
 				if (result.data[i].place.location.state) {
@@ -117,8 +118,13 @@ function get_locations_from_url(url) {
 
 // Gets the place info for the ID
 function update_place_info(place_id) {
-	FB.api("/" + place_id + "?fields=about", function (result) {
-		$("#place_" + place_id + " .fb-about").text(result.about).fadeIn();
+	FB.api("/" + place_id + "?fields=about,phone", function (result) {
+		if (result.about) {
+			$("#place_" + place_id + " .fb-about").text(result.about).fadeIn();
+		}
+		if (result.phone) {
+			$("#place_" + place_id + " .tel").text(result.phone).fadeIn();
+		}
 	});
 }
 
