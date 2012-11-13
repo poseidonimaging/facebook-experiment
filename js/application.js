@@ -85,8 +85,12 @@ function get_locations_from_url(url) {
 			// so we can fade it in after adding it.
 			$place.hide();
 
+			// Now add the place and fade it in.
 			$("#places").append($place);
 			$place.fadeIn("slow");
+
+			// And now update the place info (another asynchronous call).
+			update_place_info(result.data[i].place.id);
 		}
 
 		// Update the times now.
