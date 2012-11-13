@@ -65,6 +65,7 @@ function get_locations_from_url(url) {
 			// Hide some stuff that might not always show up.
 			$place.find(".fb-been-with").hide();
 			$place.find(".fb-about").hide();
+			$place.find(".adr, .adr *").hide();
 
 			// Populate tags list.
 			if (tags.length > 0) {
@@ -80,7 +81,23 @@ function get_locations_from_url(url) {
 				}
 			}
 
-			// Go get the about information.
+			// Populate address if present. Just checking for the city really as we can at least show that.
+			if (result.data[i].place.location && result.data[i].place.location.city) {
+				$place.find(".adr").show();
+				$place.find(".adr .locality").show().text(result.data[i].place.location.city);
+
+				if (result.data[i].place.location.street) {
+					$place.find(".adr .street-address").show().text(result.data[i].place.location.street);
+				}
+
+				if (result.data[i].place.location.state) {
+					$place.find(".adr .region").show().text(result.data[i].place.location.state);
+				}
+
+				if (result.data[i].place.location.zip) {
+					$place.find(".adr .postal-code").show().text(result.data[i].place.location.zip);
+				}
+			}
 
 			// so we can fade it in after adding it.
 			$place.hide();
