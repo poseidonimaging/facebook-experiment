@@ -46,18 +46,25 @@
           We only read the location data and don't do anything with the text.
         </p>
 
-        <p><button id="fb-login" class="btn btn-primary">Let's do it!</button></p>
-      </div> <!-- /container -->
-    </div>
+        <p><button id="fb-login" class="btn btn-primary">Let's do it!</button> <button id="test-template" class="btn">Show me the template, Captain.</button></p>
+      </div>
 
-    <ul id="places" class="thumbnails">
-    </ul>
+      <ul id="places" class="media-list"></ul>
+    </div>
 
     <!-- this is the template object we will be filling in with place info -->
     <div id="place_template">
-      <li>
-        <a href="" class="thumbnail"><img src="http://placehold.it/300x200" alt="" /></a>
-        <h3></h3>
+      <li class="media">
+        <div class="pull-left">
+          <img src="http://placehold.it/150x150" alt="Place thumbnail" />
+        </div>
+        <div class="media-body">
+          <h4 class="media-heading"><span class="fn org">Place Name</span> <small>Last visited <time>forever ago</time>.</small></h4>
+          <div class="fb-been-with">
+            <p>You've been here with:</p>
+            <ul></ul>
+          </div>
+        </div>
       </li>
     </div>
 
@@ -67,5 +74,7 @@
     <script src="//code.jquery.com/jquery-latest.js"></script>
     <script src="js/bootstrap.min.js"></script>
     <script src="js/application.js"></script>
+    <script src="js/iso8601.min.js"></script>
+    <script src="js/jquery.timeago.js"></script>
   </body>
 </html>
