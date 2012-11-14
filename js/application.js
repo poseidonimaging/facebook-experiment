@@ -1,5 +1,6 @@
 // Global variables because I'm lazy.
 var fb_current_user_id;
+var gmaps_api_key = "AIzaSyCxh2fB3cLbNc5XvAWSOO_0YFuOxFoTwFg";
 
 // jQuery event handlers
 $(document).ready(function () {
@@ -47,11 +48,13 @@ function get_locations_from_url(url) {
 
 			// Set up root place LI.
 			$place.attr("id", "place_" + result.data[i].place.id);
-			$place.attr("data-facebook-id", result.data[i].place.id); // Not using .data() because we need to be able to use a selector to find it.
+			$place.data("facebook-id", result.data[i].place.id);
+			$place.data("facebook-location-lat", result.data[i].place.location.latitude);
+			$place.data("facebook-location-lng", result.data[i].place.location.longitude);
 			$place.addClass("vcard");
 
 			// Set place name.
-			$place.find("h4 span").text(result.data[i].place.name);
+			$place.find("h4 .fn").text(result.data[i].place.name);
 
 			// Set timestamp.
 			$place.find("time")
@@ -59,26 +62,27 @@ function get_locations_from_url(url) {
 				.attr("datetime", result.data[i].created_time)
 				.text((new Date(result.data[i].created_time)).toString());
 
-			// Set the place photo.
-			$place.find("img").attr("src", "https://graph.facebook.com/" + result.data[i].place.id + "/picture?width=150&height=150");
-
 			// Hide some stuff that might not always show up.
 			$place.find(".fb-been-with").hide();
 			$place.find(".fb-about").hide();
 			$place.find(".tel").hide();
 			$place.find(".adr, .adr *").hide();
 
-			// Populate tags list.
-			if (tags.length > 0) {
+			// Populate visited with list if we can.
+			if (tags.length > 0 && $place.find(".fb-visit-with-list").text() == "by yourself") {
+				var visit_with_list = [];
+
+				// Loop over the tags and add the people you've been with but not yourself.
 				for (var t = 0; t < tags.length; t++) {
 					// Don't add yourself.
 					if (tags[t].id != fb_current_user_id) {
-						var $person = $("<li>" + tags[t].name + "</li>");
-						$place.find(".fb-been-with ul").append($person);
-
-						// Show the been with list.
-						$place.find(".fb-been-with").show();
+						visit_with_list.push(tags[t].name);
 					}
+				}
+
+				// Now use array_to_sentence to make it magic.
+				if (visit_with_list.length > 0) {
+					$place.find(".fb-visit-with-list").text("with " + array_to_sentence(visit_with_list));
 				}
 			}
 
@@ -118,16 +122,37 @@ function get_locations_from_url(url) {
 
 // Gets the place info for the ID
 function update_place_info(place_id) {
-	FB.api("/" + place_id + "?fields=about,phone", function (result) {
+	FB.api("/" + place_id + "?fields=about,phone,picture", function (result) {
+		var $place = $("#place_" + place_id);
+
 		if (result.about) {
-			$("#place_" + place_id + " .fb-about").text(result.about).fadeIn();
+			$place.find(".fb-about").text(result.about).fadeIn();
 		}
 		if (result.phone) {
-			$("#place_" + place_id + " .tel").text(result.phone).fadeIn();
+			$place.find(".tel").text(result.phone).fadeIn();
+		}
+		if (result.picture) {
+			if (result.picture.data.is_silhouette) {
+				var ll = $place.data("facebook-location-lat") + "," + $place.data("facebook-location-lng");
+				$place.find("img").attr("src", "http://maps.googleapis.com/maps/api/staticmap?size=150x150&zoom=14&markers=" + ll + "&sensor=false&key=" + gmaps_api_key);
+			} else {
+				$place.find("img").attr("src", "https://graph.facebook.com/" + place_id + "/picture?width=150&height=150");
+			}
 		}
 	});
 }
 
+// from: http://stackoverflow.com/a/3766221/516229
+function array_to_sentence(array) {
+  if (!array || array.length == 0) return "";
+  var clone = array.slice(0);
+
+  return function build() {
+    if (clone.length == 1) return clone[0];
+    if (clone.length == 2) return clone[0] + ' and ' + clone[1];
+    return clone.shift() + ", " + build();
+  }();
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 
