@@ -25,12 +25,6 @@ $(document).ready(function () {
 		$("#places").append($place);
 		$place.fadeIn("slow");
 	});
-
-	// This timer exists because sometimes the times don't get updated magically like they should.
-	setTimeout(function () {
-		// Update the times now.
-		$("time.timeago").timeago();
-	}, 5000);
 });
 
 function get_locations_from_url(url) {
