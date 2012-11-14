@@ -196,13 +196,13 @@ function get_locations_from_url(url) {
 			}
 		}
 
+		// Update the times now.
+		$("time.timeago").timeago();
+
 		// Load the next page if we can.
 		if (result.paging && result.paging.next && result.paging.next.replace("https://graph.facebook.com", "") != url) {
 			get_locations_from_url(result.paging.next.replace("https://graph.facebook.com", ""));
 		}
-
-		// Update the times now.
-		$("time.timeago").timeago();
 	});
 }
 
