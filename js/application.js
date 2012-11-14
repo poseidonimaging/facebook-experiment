@@ -34,8 +34,6 @@ function get_locations_from_url(url) {
 		for (var i = 0, l = result.data.length; i < l; i++) {
 			console.log(result.data[i]);
 
-			var $place = $("#place_template").clone().find("li").first();
-
 			// Make sure tags always includes the from and the tags, if they
 			// are available.
 			var tags = [];
@@ -46,73 +44,124 @@ function get_locations_from_url(url) {
 				tags.push(result.data[i].from);
 			}
 
-			// Set up root place LI.
-			$place.attr("id", "place_" + result.data[i].place.id);
-			$place.data("facebook-id", result.data[i].place.id);
-			$place.data("facebook-location-lat", result.data[i].place.location.latitude);
-			$place.data("facebook-location-lng", result.data[i].place.location.longitude);
-			$place.addClass("vcard");
+			if ($("#place_" + result.data[i].place.id).length == 0) {
+				var $place = $("#place_template").clone().find("li").first();
 
-			// Set place name.
-			$place.find("h4 .fn").text(result.data[i].place.name);
+				// Set up root place LI.
+				$place.attr("id", "place_" + result.data[i].place.id);
+				$place.data("facebook-id", result.data[i].place.id);
+				$place.data("facebook-location-lat", result.data[i].place.location.latitude);
+				$place.data("facebook-location-lng", result.data[i].place.location.longitude);
+				$place.addClass("vcard");
 
-			// Set timestamp.
-			$place.find("time")
-				.addClass("timeago")
-				.attr("datetime", result.data[i].created_time)
-				.text((new Date(result.data[i].created_time)).toString());
+				// Set place name.
+				$place.find("h4 .fn").text(result.data[i].place.name);
 
-			// Hide some stuff that might not always show up.
-			$place.find(".fb-been-with").hide();
-			$place.find(".fb-about").hide();
-			$place.find(".tel").hide();
-			$place.find(".adr, .adr *").hide();
+				// Set timestamp.
+				$place.find("time")
+					.addClass("timeago")
+					.attr("datetime", result.data[i].created_time)
+					.text((new Date(result.data[i].created_time)).toString());
 
-			// Populate visited with list if we can.
-			if (tags.length > 0 && $place.find(".fb-visit-with-list").text() == "by yourself") {
-				var visit_with_list = [];
+				// Hide some stuff that might not always show up.
+				$place.find(".fb-other-visits").hide();
+				$place.find(".fb-about").hide();
+				$place.find(".tel").hide();
+				$place.find(".adr, .adr *").hide();
 
-				// Loop over the tags and add the people you've been with but not yourself.
-				for (var t = 0; t < tags.length; t++) {
-					// Don't add yourself.
-					if (tags[t].id != fb_current_user_id) {
-						visit_with_list.push(tags[t].name);
+				// Populate visited with list if we can.
+				if (tags.length > 0 && $place.find(".fb-visit-with-list").text() == "by yourself") {
+					var visit_with_list = [];
+
+					// Loop over the tags and add the people you've been with but not yourself.
+					for (var t = 0; t < tags.length; t++) {
+						// Don't add yourself.
+						if (tags[t].id != fb_current_user_id) {
+							visit_with_list.push(tags[t].name);
+						}
+					}
+
+					// Now use array_to_sentence to make it magic.
+					if (visit_with_list.length > 0) {
+						$place.find(".fb-visit-with-list").text("with " + array_to_sentence(visit_with_list));
 					}
 				}
 
-				// Now use array_to_sentence to make it magic.
-				if (visit_with_list.length > 0) {
-					$place.find(".fb-visit-with-list").text("with " + array_to_sentence(visit_with_list));
+				// Populate address if present. Just checking for the city really as we can at least show that.
+				if (result.data[i].place.location && result.data[i].place.location.city) {
+					$place.find(".adr").show();
+					$place.find(".adr .locality").show().text(result.data[i].place.location.city);
+
+					if (result.data[i].place.location.street) {
+						$place.find(".adr .street-address").show().text(result.data[i].place.location.street.replace(/(\n|\r|\s)+$/, ''));
+					}
+
+					if (result.data[i].place.location.state) {
+						$place.find(".adr .region").show().text(result.data[i].place.location.state);
+					}
+
+					if (result.data[i].place.location.zip) {
+						$place.find(".adr .postal-code").show().text(result.data[i].place.location.zip);
+					}
 				}
+
+				// so we can fade it in after adding it.
+				$place.hide();
+
+				// Now add the place and fade it in.
+				$("#places").append($place);
+				$place.fadeIn("slow");
+
+				// And now update the place info (another asynchronous call).
+				update_place_info(result.data[i].place.id);
+			} else {
+				// Place already exists in the DOM, update the existing item then.
+				var $place = $("#place_" + result.data[i].place.id);
+
+				// Update visit count.
+				var visit_count = parseInt($place.find(".fb-visit-count").text());
+				visit_count++;
+				$place.find(".fb-visit-count").text(visit_count + " visits");
+
+				// Show "Other visits"
+				$place.find(".fb-other-visits").fadeIn("slow");
+
+				// Build this visit HTML.
+				var this_visit_html = "<li><time class='timeago' datetime='" + result.data[i].created_time + "'>" + (new Date(result.data[i].created_time)).toString() + "</time>";
+
+				// Loop through the tags on this checkin.
+				if (tags.length > 0) {
+					var visit_with_list = [];
+
+					// Loop over the tags and add the people you've been with but not yourself.
+					for (var t = 0; t < tags.length; t++) {
+						// Don't add yourself.
+						if (tags[t].id != fb_current_user_id) {
+							visit_with_list.push(tags[t].name);
+						}
+					}
+
+					// Now use array_to_sentence to make it magic.
+					if (visit_with_list.length > 0) {
+						this_visit_html += " with " + array_to_sentence(visit_with_list);
+					} else {
+						this_visit_html += " by yourself";
+					}
+				} else {
+					this_visit_html += " by yourself";
+				}
+
+				// Add closing </li>.
+				this_visit_html += "</li>";
+
+				// Create jQuery object of this visit HTML and initially hide it.
+				var $this_visit = $(this_visit_html);
+				$this_visit.hide();
+
+				// Now drop that in the DOM and fade it in.
+				$place.find(".fb-other-visits ul").append($this_visit);
+				$this_visit.fadeIn("slow");
 			}
-
-			// Populate address if present. Just checking for the city really as we can at least show that.
-			if (result.data[i].place.location && result.data[i].place.location.city) {
-				$place.find(".adr").show();
-				$place.find(".adr .locality").show().text(result.data[i].place.location.city);
-
-				if (result.data[i].place.location.street) {
-					$place.find(".adr .street-address").show().text(result.data[i].place.location.street.replace(/(\n|\r|\s)+$/, ''));
-				}
-
-				if (result.data[i].place.location.state) {
-					$place.find(".adr .region").show().text(result.data[i].place.location.state);
-				}
-
-				if (result.data[i].place.location.zip) {
-					$place.find(".adr .postal-code").show().text(result.data[i].place.location.zip);
-				}
-			}
-
-			// so we can fade it in after adding it.
-			$place.hide();
-
-			// Now add the place and fade it in.
-			$("#places").append($place);
-			$place.fadeIn("slow");
-
-			// And now update the place info (another asynchronous call).
-			update_place_info(result.data[i].place.id);
 		}
 
 		// Update the times now.
@@ -126,10 +175,10 @@ function update_place_info(place_id) {
 		var $place = $("#place_" + place_id);
 
 		if (result.about) {
-			$place.find(".fb-about").text(result.about).fadeIn();
+			$place.find(".fb-about").text(result.about).fadeIn("slow");
 		}
 		if (result.phone) {
-			$place.find(".tel").text(result.phone).fadeIn();
+			$place.find(".tel").text(result.phone).fadeIn("slow");
 		}
 		if (result.picture) {
 			if (result.picture.data.is_silhouette) {
