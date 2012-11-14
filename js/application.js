@@ -79,6 +79,12 @@ function get_locations_from_url(url) {
 						// Don't add yourself.
 						if (tags[t].id != fb_current_user_id) {
 							visit_with_list.push(tags[t].name);
+
+							// Add to the list in the top-right.
+							var visit_count_person_html = '<div id="place_' + result.data[i].place.id + '_visit_with_' + tags[t].id + '" class="fb-visit-count-person">1 ' +
+															tags[t].name +
+															'</div>';
+							$place.find(".fb-visit-counts").append(visit_count_person_html);
 						}
 					}
 
@@ -149,6 +155,18 @@ function get_locations_from_url(url) {
 						// Don't add yourself.
 						if (tags[t].id != fb_current_user_id) {
 							visit_with_list.push(tags[t].name);
+
+							// Update the person's visit count or add a new person.
+							if ($('#place_' + result.data[i].place.id + '_visit_with_' + tags[t].id).length > 0) {
+								var visit_count_person = parseInt($('#place_' + result.data[i].place.id + '_visit_with_' + tags[t].id).text());
+								visit_count_person++;
+								$('#place_' + result.data[i].place.id + '_visit_with_' + tags[t].id).text(visit_count_person + " " + tags[t].name);
+							} else {
+								var visit_count_person_html = '<div id="place_' + result.data[i].place.id + '_visit_with_' + tags[t].id + '" class="fb-visit-count-person">1 ' +
+																tags[t].name +
+																'</div>';
+								$place.find(".fb-visit-counts").append(visit_count_person_html);
+							}
 						}
 					}
 
