@@ -10,6 +10,7 @@ $(document).ready(function () {
 				fb_current_user_id = response.authResponse.userID;
 
 				$("#welcome").fadeOut("slow");
+				$("#result_info").fadeIn("slow");
 				get_locations_from_url("/me/locations?fields=place,created_time,tags,from");
 			} else {
 				console.log('User cancelled login or did not fully authorize.');
@@ -114,6 +115,16 @@ function get_locations_from_url(url) {
 
 				// And now update the place info (another asynchronous call).
 				update_place_info(result.data[i].place.id);
+
+				// Increment the place count.
+				var place_count = parseInt($("#result_info span").text());
+				place_count++;
+
+				if (place_count == 1) {
+					$("#result_info span").text(place_count + " place");
+				} else {
+					$("#result_info span").text(place_count + " places");
+				}
 			} else {
 				// Place already exists in the DOM, update the existing item then.
 				var $place = $("#place_" + result.data[i].place.id);
