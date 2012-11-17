@@ -1,6 +1,9 @@
 // Global variables because I'm lazy.
 var fb_current_user_id;
 var gmaps_api_key = "AIzaSyCxh2fB3cLbNc5XvAWSOO_0YFuOxFoTwFg";
+var templates = {
+	visit_count_person: '<div id="place_{{place_id}}_visit_with_{{person_id}}" class="fb-visit-count-person">{{visit_count}} {{person_name}}</div>'
+};
 
 // jQuery event handlers
 $(document).ready(function () {
@@ -83,9 +86,12 @@ function get_locations_from_url(url) {
 								visit_with_list.push(tags[t].name);
 
 								// Add to the list in the top-right.
-								var visit_count_person_html = '<div id="place_' + result.data[i].place.id + '_visit_with_' + tags[t].id + '" class="fb-visit-count-person">1 ' +
-																tags[t].name +
-																'</div>';
+								var visit_count_person_html = $.mustache(templates.visit_count_person, {
+									place_id: data.place.id,
+									person_id: tags[t].id,
+									person_name: tags[t].name,
+									visit_count: 1
+								});
 								$place.find(".fb-visit-counts").append(visit_count_person_html);
 							}
 						}
@@ -164,9 +170,12 @@ function get_locations_from_url(url) {
 									visit_count_person++;
 									$('#place_' + result.data[i].place.id + '_visit_with_' + tags[t].id).text(visit_count_person + " " + tags[t].name);
 								} else {
-									var visit_count_person_html = '<div id="place_' + result.data[i].place.id + '_visit_with_' + tags[t].id + '" class="fb-visit-count-person">1 ' +
-																	tags[t].name +
-																	'</div>';
+									var visit_count_person_html = $.mustache(templates.visit_count_person, {
+										place_id: data.place.id,
+										person_id: tags[t].id,
+										person_name: tags[t].name,
+										visit_count: 1
+									});
 									$place.find(".fb-visit-counts").append(visit_count_person_html);
 								}
 							}
