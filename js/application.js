@@ -77,27 +77,35 @@ function get_locations_from_url(url) {
 				if ($("#place_" + data.place.id).length == 0) {
 					var $place = $("#place_template").clone().find("li").first();
 
-					// Set up root place LI.
-					$place.attr("id", "place_" + result.data[i].place.id);
-					$place.data("facebook-id", result.data[i].place.id);
-					$place.data("facebook-location-lat", result.data[i].place.location.latitude);
-					$place.data("facebook-location-lng", result.data[i].place.location.longitude);
-					$place.addClass("vcard");
-
-					// Set place name.
-					$place.find("h4 .fn").text(result.data[i].place.name);
-
-					// Set timestamp.
-					$place.find("time")
-						.addClass("timeago")
-						.attr("datetime", result.data[i].created_time)
-						.text((new Date(result.data[i].created_time)).toString());
-
-					// Hide some stuff that might not always show up.
-					$place.find(".fb-other-visits").hide();
-					$place.find(".fb-about").hide();
-					$place.find(".tel").hide();
-					$place.find(".adr, .adr *").hide();
+					// Ladies and gentlemen, a really long jQuery chain!
+					$place
+						// Set some stuff on the place object
+						.attr("id", "place_" + data.place.id)
+						.data("facebook-id", data.place.id)
+						.addClass("vcard")
+						// Hide some stuff that might not always show up.
+						.find(".fb-other-visits")
+							.hide()
+						.end()
+						.find(".fb-about")
+							.hide()
+						.end()
+						.find(".tel")
+							.hide()
+						.end()
+						.find(".adr, .adr *")
+							.hide()
+						.end()
+						// Set timestamp.
+						.find("time")
+							.addClass("timeago")
+							.attr("datetime", data.created_time)
+							.text((new Date(data.created_time)).toString())
+						.end()
+						// Set place name.
+						.find("h4 .fn")
+							.text(data.place.name)
+						.end();
 
 					// Populate visited with list if we can.
 					if (tags.length > 0 && $place.find(".fb-visit-with-list").text() == "by yourself") {
