@@ -30,21 +30,22 @@ function get_locations_from_url(url) {
 		console.log("FB.api executed callback!");
 		console.log(result);
 		for (var i = 0, l = result.data.length; i < l; i++) {
-			console.log(result.data[i]);
+			var data = result.data[i];
+			console.log(data);
 
 			// Ensure there's always a place record so we don't attempt to access <undefined>.<whatever>.
-			if (result.data[i].place) {
+			if (data.place) {
 				// Make sure tags always includes the from and the tags, if they
 				// are available.
 				var tags = [];
-				if (result.data[i].tags && result.data[i].tags.data) {
-					tags = tags.concat(result.data[i].tags.data);
+				if (data.tags && data.tags.data) {
+					tags = tags.concat(data.tags.data);
 				}
-				if (result.data[i].from) {
-					tags.push(result.data[i].from);
+				if (data.from) {
+					tags.push(data.from);
 				}
 
-				if ($("#place_" + result.data[i].place.id).length == 0) {
+				if ($("#place_" + data.place.id).length == 0) {
 					var $place = $("#place_template").clone().find("li").first();
 
 					// Set up root place LI.
@@ -122,7 +123,7 @@ function get_locations_from_url(url) {
 					$place.fadeIn("slow");
 
 					// And now update the place info (another asynchronous call).
-					update_place_info(result.data[i].place.id);
+					update_place_info(data.place.id);
 
 					// Increment the place count.
 					var place_count = parseInt($("#result_info span").text());
@@ -135,7 +136,7 @@ function get_locations_from_url(url) {
 					}
 				} else {
 					// Place already exists in the DOM, update the existing item then.
-					var $place = $("#place_" + result.data[i].place.id);
+					var $place = $("#place_" + data.place.id);
 
 					// Update visit count.
 					var visit_count = parseInt($place.find(".fb-visit-count").text());
@@ -146,7 +147,7 @@ function get_locations_from_url(url) {
 					$place.find(".fb-other-visits").fadeIn("slow");
 
 					// Build this visit HTML.
-					var this_visit_html = "<li><time class='timeago' datetime='" + result.data[i].created_time + "'>" + (new Date(result.data[i].created_time)).toString() + "</time>";
+					var this_visit_html = "<li><time class='timeago' datetime='" + data.created_time + "'>" + (new Date(data.created_time)).toString() + "</time>";
 
 					// Loop through the tags on this checkin.
 					if (tags.length > 0) {
@@ -159,10 +160,10 @@ function get_locations_from_url(url) {
 								visit_with_list.push(tags[t].name);
 
 								// Update the person's visit count or add a new person.
-								if ($('#place_' + result.data[i].place.id + '_visit_with_' + tags[t].id).length > 0) {
-									var visit_count_person = parseInt($('#place_' + result.data[i].place.id + '_visit_with_' + tags[t].id).text());
+								if ($('#place_' + data.place.id + '_visit_with_' + tags[t].id).length > 0) {
+									var visit_count_person = parseInt($('#place_' + data.place.id + '_visit_with_' + tags[t].id).text());
 									visit_count_person++;
-									$('#place_' + result.data[i].place.id + '_visit_with_' + tags[t].id).text(visit_count_person + " " + tags[t].name);
+									$('#place_' + data.place.id + '_visit_with_' + tags[t].id).text(visit_count_person + " " + tags[t].name);
 								} else {
 									var visit_count_person_html = $.mustache(templates.visit_count_person, {
 										place_id: data.place.id,
