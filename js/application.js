@@ -21,12 +21,6 @@ $(document).ready(function () {
 		}, { scope: "user_checkins,friends_checkins,user_status,friends_status,user_photos,friends_photos" });
 	});
 
-	$("#test-template").click(function () {
-		var $place = $("#place_template").clone().find("li").first();
-		$place.attr("id", "test-template");
-		$place.hide();
-		$("#places").append($place);
-		$place.fadeIn("slow");
 	});
 });
 
