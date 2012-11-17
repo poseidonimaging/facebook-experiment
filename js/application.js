@@ -21,6 +21,35 @@ $(document).ready(function () {
 		}, { scope: "user_checkins,friends_checkins,user_status,friends_status,user_photos,friends_photos" });
 	});
 
+	// Handle showing location data.
+	$(document).on("restnap:place:location_available", function (e, data) {
+		var $place = $(e.target);
+
+		$place.find(".adr").show();
+
+		if (data.city) {
+			$place.find(".adr .locality").show().text(data.city);
+		}
+
+		if (data.street) {
+			$place.find(".adr .street-address").show().text(data.street.replace(/(\n|\r|\s)+$/, ''));
+		}
+
+		if (data.state) {
+			$place.find(".adr .region").show().text(data.state);
+		}
+
+		if (data.zip) {
+			$place.find(".adr .postal-code").show().text(data.zip);
+		}
+
+		if (data.latitude) {
+			$place.data("facebook-location-lat", data.latitude);
+		}
+
+		if (data.longitude) {
+			$place.data("facebook-location-lng", data.longitude);
+		}
 	});
 });
 
@@ -97,30 +126,17 @@ function get_locations_from_url(url) {
 						}
 					}
 
-					// Populate address if present. Just checking for the city really as we can at least show that.
-					if (result.data[i].place.location && result.data[i].place.location.city) {
-						$place.find(".adr").show();
-						$place.find(".adr .locality").show().text(result.data[i].place.location.city);
-
-						if (result.data[i].place.location.street) {
-							$place.find(".adr .street-address").show().text(result.data[i].place.location.street.replace(/(\n|\r|\s)+$/, ''));
-						}
-
-						if (result.data[i].place.location.state) {
-							$place.find(".adr .region").show().text(result.data[i].place.location.state);
-						}
-
-						if (result.data[i].place.location.zip) {
-							$place.find(".adr .postal-code").show().text(result.data[i].place.location.zip);
-						}
-					}
-
 					// so we can fade it in after adding it.
 					$place.hide();
 
 					// Now add the place and fade it in.
 					$("#places").append($place);
 					$place.fadeIn("slow");
+
+					// Fire an event that we have location information!
+					if (data.place.location) {
+						$place.trigger("restnap:place:location_available", data.place.location);
+					}
 
 					// And now update the place info (another asynchronous call).
 					update_place_info(data.place.id);
