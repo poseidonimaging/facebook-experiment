@@ -2,7 +2,9 @@
 var fb_current_user_id;
 var gmaps_api_key = "AIzaSyCxh2fB3cLbNc5XvAWSOO_0YFuOxFoTwFg";
 var templates = {
-	visit_count_person: '<div id="place_{{place_id}}_visit_with_{{person_id}}" class="fb-visit-count-person">{{visit_count}} {{person_name}}</div>'
+	visit_count_person: '<div id="place_{{place_id}}_visit_with_{{person_id}}" class="fb-visit-count-person">{{visit_count}} {{person_name}}</div>',
+	visit_timestamp: "<time class='timeago' datetime='{{timestamp}}'>{{human_time}}</time>",
+	gmaps_url: "http://maps.googleapis.com/maps/api/staticmap?size={{size}}&zoom={{zoom}}&markers={{lat}},{{lng}}&sensor=false&key={{api_key}}"
 };
 
 // jQuery event handlers
@@ -171,7 +173,10 @@ function get_locations_from_url(url) {
 					$place.find(".fb-other-visits").fadeIn("slow");
 
 					// Build this visit HTML.
-					var this_visit_html = "<li><time class='timeago' datetime='" + data.created_time + "'>" + (new Date(data.created_time)).toString() + "</time>";
+					var this_visit_html = "<li>" + $.mustache(templates.visit_timestamp, {
+						timestamp: data.created_time,
+						human_time: (new Date(data.created_time)).toString()
+					});
 
 					// Loop through the tags on this checkin.
 					if (tags.length > 0) {
