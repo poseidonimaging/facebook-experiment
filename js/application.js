@@ -65,11 +65,40 @@ $(document).ready(function () {
 
 				$("#analytics-checkins ul")
 					.append($.mustache(templates.analytics_count, {
-						count: this[0],
-						value: this[1]
+						count: this[1],
+						value: this[0]
 					})
 				);
 			}
+
+			// Show friend info.
+			$("#analytics-friends ul").empty();
+			$(sorted_friend_counts.slice(0, 5)).each(function () {
+				console.log(this);
+
+				$("#analytics-friends ul")
+					.append($.mustache(templates.analytics_count, {
+						count: this[1],
+						value: friends[this[0]]
+					})
+				);
+			}
+
+			// Show city info.
+			$("#analytics-cities ul").empty();
+			$(sorted_city_counts.slice(0, 5)).each(function () {
+				console.log(this);
+
+				$("#analytics-cities ul")
+					.append($.mustache(templates.analytics_count, {
+						count: this[1],
+						value: this[0]
+					})
+				);
+			}
+
+			// Fade the whole thing in.
+			$("#analytics").fadeIn("slow");
 		})
 		// Handle showing location data.
 		.on("restnap:place:location_available", function (e, data) {
