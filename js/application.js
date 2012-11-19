@@ -16,7 +16,7 @@ $(document).ready(function () {
 
 				$("#welcome").fadeOut("slow");
 				$("#result_info").fadeIn("slow");
-				get_locations_from_url("/me/locations?fields=place,created_time,tags,from");
+				get_locations_from_url("/me/locations?fields=place.fields(id,name,location,about,phone,picture),created_time,tags,from");
 			} else {
 				console.log('User cancelled login or did not fully authorize.');
 			}
@@ -52,6 +52,19 @@ $(document).ready(function () {
 		if (data.longitude) {
 			$place.data("facebook-location-lng", data.longitude);
 		}
+
+		if (data.latitude && data.longitude && $place.find("img:not(.fb-photo)").length > 0) {
+			$place.find("img")
+				.attr("src", $.mustache(templates.gmaps_url, {
+					zoom: 14,
+					size: "150x150",
+					lat: data.latitude,
+					lng: data.longitude,
+					api_key: gmaps_api_key
+				})
+			);
+		}
+
 	});
 });
 
@@ -136,6 +149,23 @@ function get_locations_from_url(url) {
 						}
 					}
 
+					// Add about text if any.
+					if (data.place.about) {
+						$place.find(".fb-about").text(data.place.about);
+					}
+
+					// Add phone number if any.
+					if (data.place.phone) {
+						$place.find(".tel").text(data.place.phone);
+					}
+
+					// Set photo if any.
+					if (data.place.picture && !data.place.picture.data.is_silhouette) {
+						$place.find("img")
+							.attr("src", "https://graph.facebook.com/" + data.place.id + "/picture?width=150&height=150")
+							.addClass("fb-photo");
+					}
+
 					// so we can fade it in after adding it.
 					$place.hide();
 
@@ -147,9 +177,6 @@ function get_locations_from_url(url) {
 					if (data.place.location) {
 						$place.trigger("restnap:place:location_available", data.place.location);
 					}
-
-					// And now update the place info (another asynchronous call).
-					update_place_info(data.place.id);
 
 					// Increment the place count.
 					var place_count = parseInt($("#result_info span").text());
@@ -235,28 +262,6 @@ function get_locations_from_url(url) {
 		// Load the next page if we can.
 		if (result.paging && result.paging.next && result.paging.next.replace("https://graph.facebook.com", "") != url) {
 			get_locations_from_url(result.paging.next.replace("https://graph.facebook.com", ""));
-		}
-	});
-}
-
-// Gets the place info for the ID
-function update_place_info(place_id) {
-	FB.api("/" + place_id + "?fields=about,phone,picture", function (result) {
-		var $place = $("#place_" + place_id);
-
-		if (result.about) {
-			$place.find(".fb-about").text(result.about).fadeIn("slow");
-		}
-		if (result.phone) {
-			$place.find(".tel").text(result.phone).fadeIn("slow");
-		}
-		if (result.picture) {
-			if (result.picture.data.is_silhouette) {
-				var ll = $place.data("facebook-location-lat") + "," + $place.data("facebook-location-lng");
-				$place.find("img").attr("src", "http://maps.googleapis.com/maps/api/staticmap?size=150x150&zoom=14&markers=" + ll + "&sensor=false&key=" + gmaps_api_key);
-			} else {
-				$place.find("img").attr("src", "https://graph.facebook.com/" + place_id + "/picture?width=150&height=150");
-			}
 		}
 	});
 }
