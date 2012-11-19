@@ -88,6 +88,7 @@ function get_locations_from_url(url) {
 			}
 
 			// Ensure there's always a place record so we don't attempt to access <undefined>.<whatever>.
+			if (data.place && (data.place.phone || (data.place.location && data.place.location.city))) {
 				if ($("#place_" + data.place.id).length == 0) {
 					var $place = $("#place_template").clone().find("li").first();
 
