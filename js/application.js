@@ -77,18 +77,17 @@ function get_locations_from_url(url) {
 			var data = result.data[i];
 			console.log(data);
 
-			// Ensure there's always a place record so we don't attempt to access <undefined>.<whatever>.
-			if (data.place) {
-				// Make sure tags always includes the from and the tags, if they
-				// are available.
-				var tags = [];
-				if (data.tags && data.tags.data) {
-					tags = tags.concat(data.tags.data);
-				}
-				if (data.from) {
-					tags.push(data.from);
-				}
+			// Make sure tags always includes the from and the tags, if they
+			// are available.
+			var tags = [];
+			if (data.tags && data.tags.data) {
+				tags = tags.concat(data.tags.data);
+			}
+			if (data.from) {
+				tags.push(data.from);
+			}
 
+			// Ensure there's always a place record so we don't attempt to access <undefined>.<whatever>.
 				if ($("#place_" + data.place.id).length == 0) {
 					var $place = $("#place_template").clone().find("li").first();
 
