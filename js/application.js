@@ -42,21 +42,21 @@ $(document).ready(function () {
 				sorted_checkins.push([checkin, checkins[checkin]]);
 			}
 
-			sorted_checkins.sort(sort_func);
+			sorted_checkins.sort(sort_func).reverse();
 
 			// Sort city counts
 			for (var city in city_counts) {
 				sorted_city_counts.push([city, city_counts[city]]);
 			}
 
-			sorted_city_counts.sort(sort_func);
+			sorted_city_counts.sort(sort_func).reverse();
 
 			// Sort friend counts
 			for (var friend in friend_counts) {
 				sorted_friend_counts.push([friend, friend_counts[friend]]);
 			}
 
-			sorted_friend_counts.sort(sort_func);
+			sorted_friend_counts.sort(sort_func).reverse();
 
 			// Show the checkins.
 			$("#analytics-checkins ul").empty();
@@ -66,7 +66,7 @@ $(document).ready(function () {
 				$("#analytics-checkins ul")
 					.append($.mustache(templates.analytics_count, {
 						count: this[1],
-						value: this[0]
+						value: $("#place_" + this[0] + " .fn").text()
 					})
 				);
 			});
