@@ -2,6 +2,7 @@
 var fb_current_user_id;
 var gmaps_api_key = "AIzaSyCxh2fB3cLbNc5XvAWSOO_0YFuOxFoTwFg";
 var templates = {
+	analytics_count: '<li>{{count}} {{value}}</li>',
 	visit_count_person: '<div id="place_{{place_id}}_visit_with_{{person_id}}" class="fb-visit-count-person">{{visit_count}} {{person_name}}</div>',
 	visit_timestamp: "<time class='timeago' datetime='{{timestamp}}'>{{human_time}}</time>",
 	gmaps_url: "http://maps.googleapis.com/maps/api/staticmap?size={{size}}&zoom={{zoom}}&markers={{lat}},{{lng}}&sensor=false&key={{api_key}}"
@@ -27,49 +28,91 @@ $(document).ready(function () {
 		}, { scope: "user_checkins,friends_checkins,user_status,friends_status,user_photos,friends_photos" });
 	});
 
-	// Handle showing location data.
-	$(document).on("restnap:place:location_available", function (e, data) {
-		var $place = $(e.target);
+	$(document)
+		// Handle fresh analytics information.
+		.on("restnap:analytics:data_available", function (e) {
+			var sorted_checkins = [];
+			var sorted_city_counts = [];
+			var sorted_friend_counts = [];
 
-		$place.find(".adr").show();
+			var sort_func = function(a, b) { return a[1] - b[1]; }
 
-		if (data.city) {
-			$place.find(".adr .locality").show().text(data.city);
-		}
+			// Sort checkins.
+			for (var checkin in checkins) {
+				sorted_checkins.push([checkin, checkins[checkin]]);
+			}
 
-		if (data.street) {
-			$place.find(".adr .street-address").show().text(data.street.replace(/(\n|\r|\s)+$/, ''));
-		}
+			sorted_checkins.sort(sort_func);
 
-		if (data.state) {
-			$place.find(".adr .region").show().text(data.state);
-		}
+			// Sort city counts
+			for (var city in city_counts) {
+				sorted_city_counts.push([city, city_counts[city]]);
+			}
 
-		if (data.zip) {
-			$place.find(".adr .postal-code").show().text(data.zip);
-		}
+			sorted_city_counts.sort(sort_func);
 
-		if (data.latitude) {
-			$place.data("facebook-location-lat", data.latitude);
-		}
+			// Sort friend counts
+			for (var friend in friend_counts) {
+				sorted_friend_counts.push([friend, friend_counts[friend]]);
+			}
 
-		if (data.longitude) {
-			$place.data("facebook-location-lng", data.longitude);
-		}
+			sorted_friend_counts.sort(sort_func);
 
-		if (data.latitude && data.longitude && $place.find("img:not(.fb-photo)").length > 0) {
-			$place.find("img")
-				.attr("src", $.mustache(templates.gmaps_url, {
-					zoom: 14,
-					size: "150x150",
-					lat: data.latitude,
-					lng: data.longitude,
-					api_key: gmaps_api_key
-				})
-			);
-		}
+			// Show the checkins.
+			$("#analytics-checkins ul").empty();
+			$(sorted_checkins.slice(0, 5)).each(function () {
+				console.log(this);
 
-	});
+				$("#analytics-checkins ul")
+					.append($.mustache(templates.analytics_count, {
+						count: this[0],
+						value: this[1]
+					})
+				);
+			}
+		})
+		// Handle showing location data.
+		.on("restnap:place:location_available", function (e, data) {
+			var $place = $(e.target);
+
+			$place.find(".adr").show();
+
+			if (data.city) {
+				$place.find(".adr .locality").show().text(data.city);
+			}
+
+			if (data.street) {
+				$place.find(".adr .street-address").show().text(data.street.replace(/(\n|\r|\s)+$/, ''));
+			}
+
+			if (data.state) {
+				$place.find(".adr .region").show().text(data.state);
+			}
+
+			if (data.zip) {
+				$place.find(".adr .postal-code").show().text(data.zip);
+			}
+
+			if (data.latitude) {
+				$place.data("facebook-location-lat", data.latitude);
+			}
+
+			if (data.longitude) {
+				$place.data("facebook-location-lng", data.longitude);
+			}
+
+			if (data.latitude && data.longitude && $place.find("img:not(.fb-photo)").length > 0) {
+				$place.find("img")
+					.attr("src", $.mustache(templates.gmaps_url, {
+						zoom: 14,
+						size: "150x150",
+						lat: data.latitude,
+						lng: data.longitude,
+						api_key: gmaps_api_key
+					})
+				);
+			}
+		});
 });
 
 function get_locations_from_url(url) {
@@ -262,10 +305,12 @@ function get_locations_from_url(url) {
 			// Analytics ahoy!
 
 			// Keep track of places.
-			if (checkins[data.place.id]) {
-				checkins[data.place.id]++;
-			} else {
-				checkins[data.place.id] = 1;
+			if (data.place) {
+				if (checkins[data.place.id]) {
+					checkins[data.place.id]++;
+				} else {
+					checkins[data.place.id] = 1;
+				}
 			}
 
 			// Keep track of cities.
