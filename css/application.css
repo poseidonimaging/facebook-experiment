@@ -1,6 +1,7 @@
 /* Things that need to be hidden by default */
 #place_template { display: none; }
 #result_info	{ display: none; }
+#analytics		{ display: none; }
 
 /* Styles for the feed */
 .fb-picture				{ min-width: 150px; max-width: 150px; }
