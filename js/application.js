@@ -60,7 +60,7 @@ $(document).ready(function () {
 
 			// Show the checkins.
 			$("#analytics-checkins ul").empty();
-			$(sorted_checkins.slice(0, 5)).each(function () {
+			$.each(sorted_checkins.slice(0, 5), function () {
 				console.log(this);
 
 				$("#analytics-checkins ul")
@@ -69,11 +69,11 @@ $(document).ready(function () {
 						value: this[0]
 					})
 				);
-			}
+			});
 
 			// Show friend info.
 			$("#analytics-friends ul").empty();
-			$(sorted_friend_counts.slice(0, 5)).each(function () {
+			$.each(sorted_friend_counts.slice(0, 5), function () {
 				console.log(this);
 
 				$("#analytics-friends ul")
@@ -82,11 +82,11 @@ $(document).ready(function () {
 						value: friends[this[0]]
 					})
 				);
-			}
+			});
 
 			// Show city info.
 			$("#analytics-cities ul").empty();
-			$(sorted_city_counts.slice(0, 5)).each(function () {
+			$.each(sorted_city_counts.slice(0, 5), function () {
 				console.log(this);
 
 				$("#analytics-cities ul")
@@ -95,7 +95,7 @@ $(document).ready(function () {
 						value: this[0]
 					})
 				);
-			}
+			});
 
 			// Fade the whole thing in.
 			$("#analytics").fadeIn("slow");
