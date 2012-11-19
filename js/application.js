@@ -6,6 +6,10 @@ var templates = {
 	visit_timestamp: "<time class='timeago' datetime='{{timestamp}}'>{{human_time}}</time>",
 	gmaps_url: "http://maps.googleapis.com/maps/api/staticmap?size={{size}}&zoom={{zoom}}&markers={{lat}},{{lng}}&sensor=false&key={{api_key}}"
 };
+var checkins = {};
+var city_counts = {};
+var friends = {};
+var friend_counts = {};
 
 // jQuery event handlers
 $(document).ready(function () {
@@ -254,10 +258,46 @@ function get_locations_from_url(url) {
 					$this_visit.fadeIn("slow");
 				}
 			}
+
+			// Analytics ahoy!
+
+			// Keep track of places.
+			if (checkins[data.place.id]) {
+				checkins[data.place.id]++;
+			} else {
+				checkins[data.place.id] = 1;
+			}
+
+			// Keep track of cities.
+			if (data.place && data.place.location && data.place.location.city) {
+				if (city_counts[data.place.location.city + ", " + data.place.location.state]) {
+					city_counts[data.place.location.city + ", " + data.place.location.state]++;
+				} else {
+					city_counts[data.place.location.city + ", " + data.place.location.state] = 1;
+				}
+			}
+
+			// Keep track of friends.
+			for (var t = 0; t < tags.length; t++) {
+				// Don't add yourself.
+				if (tags[t].id != fb_current_user_id) {
+					friends[tags[t].id] = tags[t].name;
+
+					if (friend_counts[tags[t].id]) {
+						friend_counts[tags[t].id]++;
+					} else {
+						friend_counts[tags[t].id] = 1;
+					}
+				}
+			}
 		}
 
 		// Update the times now.
 		$("time.timeago").timeago();
+
+		// Fire an event to update the analytics
+		$(document).trigger("restnap:analytics:data_available");
+
 
 		// Load the next page if we can.
 		if (result.paging && result.paging.next && result.paging.next.replace("https://graph.facebook.com", "") != url) {
