@@ -7,13 +7,21 @@ var templates = {
 	visit_timestamp: "<time class='timeago' datetime='{{timestamp}}'>{{human_time}}</time>",
 	gmaps_url: "http://maps.googleapis.com/maps/api/staticmap?size={{size}}&zoom={{zoom}}&markers={{lat}},{{lng}}&sensor=false&key={{api_key}}"
 };
-var checkins = {};
-var city_counts = {};
-var friends = {};
-var friend_counts = {};
+
+// Analytics stuff
+var Analytics = {
+	count_column: { column: 0, aggregation: google.visualization.data.count, type: 'number'},
+	checkins: new google.visualization.DataTable(),
+	cities: new google.visualization.DataTable(),
+	friends: new google.visualization.DataTable()
+};
 
 // jQuery event handlers
 $(document).ready(function () {
+	init_analytics_data_table(Analytics.checkins);
+	init_analytics_data_table(Analytics.cities);
+	init_analytics_data_table(Analytics.friends);
+
 	$("#fb-login").click(function () {
 		FB.login(function(response) {
 			if (response.authResponse) {
@@ -31,68 +39,47 @@ $(document).ready(function () {
 	$(document)
 		// Handle fresh analytics information.
 		.on("restnap:analytics:data_available", function (e) {
-			var sorted_checkins = [];
-			var sorted_city_counts = [];
-			var sorted_friend_counts = [];
-
-			var sort_func = function(a, b) { return a[1] - b[1]; }
-
-			// Sort checkins.
-			for (var checkin in checkins) {
-				sorted_checkins.push([checkin, checkins[checkin]]);
-			}
-
-			sorted_checkins.sort(sort_func).reverse();
-
-			// Sort city counts
-			for (var city in city_counts) {
-				sorted_city_counts.push([city, city_counts[city]]);
-			}
-
-			sorted_city_counts.sort(sort_func).reverse();
-
-			// Sort friend counts
-			for (var friend in friend_counts) {
-				sorted_friend_counts.push([friend, friend_counts[friend]]);
-			}
-
-			sorted_friend_counts.sort(sort_func).reverse();
-
 			// Show the checkins.
-			$("#analytics-checkins ul").empty();
-			$.each(sorted_checkins.slice(0, 5), function () {
-				console.log(this);
+			var checkins_grouped = google.visualization.data.group(Analytics.checkins, [0], [Analytics.count_column]);
+			var checkin_rows = checkins_grouped.getSortedRows([{ column: 1, desc: true }]).slice(0,5);
 
+			$("#analytics-checkins ul").empty();
+
+			$.each(checkin_rows, function () {
 				$("#analytics-checkins ul")
 					.append($.mustache(templates.analytics_count, {
-						count: this[1],
-						value: $("#place_" + this[0] + " .fn").text()
+						count: checkins_grouped.getValue(parseInt(this), 1),
+						value: checkins_grouped.getValue(parseInt(this), 0)
 					})
 				);
 			});
 
 			// Show friend info.
-			$("#analytics-friends ul").empty();
-			$.each(sorted_friend_counts.slice(0, 5), function () {
-				console.log(this);
+			var friends_grouped = google.visualization.data.group(Analytics.friends, [0], [Analytics.count_column]);
+			var friend_rows = friends_grouped.getSortedRows([{ column: 1, desc: true }]).slice(0,5);
 
+			$("#analytics-friends ul").empty();
+
+			$.each(friend_rows, function () {
 				$("#analytics-friends ul")
 					.append($.mustache(templates.analytics_count, {
-						count: this[1],
-						value: friends[this[0]]
+						count: friends_grouped.getValue(parseInt(this), 1),
+						value: friends_grouped.getValue(parseInt(this), 0)
 					})
 				);
 			});
 
 			// Show city info.
-			$("#analytics-cities ul").empty();
-			$.each(sorted_city_counts.slice(0, 5), function () {
-				console.log(this);
+			var cities_grouped = google.visualization.data.group(Analytics.cities, [0], [Analytics.count_column]);
+			var city_rows = cities_grouped.getSortedRows([{ column: 1, desc: true }]).slice(0,5);
 
+			$("#analytics-cities ul").empty();
+
+			$.each(city_rows, function () {
 				$("#analytics-cities ul")
 					.append($.mustache(templates.analytics_count, {
-						count: this[1],
-						value: this[0]
+						count: cities_grouped.getValue(parseInt(this), 1),
+						value: cities_grouped.getValue(parseInt(this), 0)
 					})
 				);
 			});
@@ -143,6 +130,17 @@ $(document).ready(function () {
 			}
 		});
 });
+
+// Sets the DataTable up. Should be called on page load.
+function init_analytics_data_table(table) {
+	table.addColumn("string", "Name");
+	table.addColumn("datetime", "Timestamp");
+}
+
+// Adds a row to the specified analytics table.
+function add_analytics_row(table, name, timestamp) {
+	table.addRow([name, timestamp]);
+}
 
 function get_locations_from_url(url) {
 	console.log("get_locations_from_url called with url " + url);
@@ -335,33 +333,19 @@ function get_locations_from_url(url) {
 
 			// Keep track of places.
 			if (data.place) {
-				if (checkins[data.place.id]) {
-					checkins[data.place.id]++;
-				} else {
-					checkins[data.place.id] = 1;
-				}
+				add_analytics_row(Analytics.checkins, data.place.name, new Date(Date.parse(data.created_time)));
 			}
 
 			// Keep track of cities.
 			if (data.place && data.place.location && data.place.location.city) {
-				if (city_counts[data.place.location.city + ", " + data.place.location.state]) {
-					city_counts[data.place.location.city + ", " + data.place.location.state]++;
-				} else {
-					city_counts[data.place.location.city + ", " + data.place.location.state] = 1;
-				}
+				add_analytics_row(Analytics.cities, data.place.location.city + ", " + data.place.location.state, new Date(Date.parse(data.created_time)));
 			}
 
 			// Keep track of friends.
 			for (var t = 0; t < tags.length; t++) {
 				// Don't add yourself.
 				if (tags[t].id != fb_current_user_id) {
-					friends[tags[t].id] = tags[t].name;
-
-					if (friend_counts[tags[t].id]) {
-						friend_counts[tags[t].id]++;
-					} else {
-						friend_counts[tags[t].id] = 1;
-					}
+					add_analytics_row(Analytics.friends, tags[t].name, new Date(Date.parse(data.created_time)));
 				}
 			}
 		}
@@ -371,7 +355,6 @@ function get_locations_from_url(url) {
 
 		// Fire an event to update the analytics
 		$(document).trigger("restnap:analytics:data_available");
-
 
 		// Load the next page if we can.
 		if (result.paging && result.paging.next && result.paging.next.replace("https://graph.facebook.com", "") != url) {
