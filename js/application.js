@@ -300,11 +300,8 @@ function add_analytics_row(table, name, timestamp) {
 function get_locations_from_url(url) {
 	console.log("get_locations_from_url called with url " + url);
 	FB.api(url, function (result) {
-		console.log("FB.api executed callback!");
-		console.log(result);
 		for (var i = 0, l = result.data.length; i < l; i++) {
 			var data = result.data[i];
-			console.log(data);
 
 			// Make sure tags always includes the from and the tags, if they
 			// are available.
