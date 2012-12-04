@@ -32,7 +32,7 @@ $(document).ready(function () {
 
 				$("#welcome").fadeOut("slow");
 				$("#result_info").fadeIn("slow");
-				get_locations_from_url("/me/locations?fields=place.fields(id,name,location,about,phone,picture),created_time,tags,from");
+				get_locations_from_url("/me/locations?fields=place.fields(id,name,location,about,phone,picture,cover),created_time,tags,from");
 			} else {
 				console.log('User cancelled login or did not fully authorize.');
 			}
@@ -432,6 +432,11 @@ function get_locations_from_url(url) {
 					// Now add the place and fade it in.
 					$("#places").append($place);
 					$place.fadeIn("slow");
+
+					// If there's a cover image, fetch the highest resolution one we can get.
+					if (data.place.cover && data.place.cover.cover_id) {
+						get_cover_image(data.place.id, data.place.cover.cover_id);
+					}
 
 					// Fire an event that we have location information!
 					if (data.place.location) {
