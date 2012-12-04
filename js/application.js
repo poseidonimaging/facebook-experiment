@@ -87,6 +87,9 @@ $(document).ready(function () {
 				);
 			});
 
+			// Show checkin habits.
+			update_checkin_habits_html_table(Analytics.checkin_habits);
+
 			// Fade the whole thing in.
 			$("#analytics").fadeIn("slow");
 		})
@@ -231,6 +234,62 @@ function increment_checkin_habits_counter(timestamp) {
 		Analytics.checkin_habits_max = value;
 	}
 }
+
+// Updates the checkin habits HTML table.
+function update_checkin_habits_html_table(data_table) {
+	var i = 0;
+	var j = 0;
+	var $table = $("#analytics-checkin-habits");
+
+	// Build header row.
+	var header_row = "<tr>";
+	for (i = 0; i < data_table.getNumberOfColumns(); i++) {
+		header_row += "<th>" + data_table.getColumnLabel(i) + "</th>";
+	}
+	header_row += "</tr>";
+
+	// Set the header row.
+	$table.find("thead").html(header_row);
+
+	// Empty data.
+	$table.find("tbody").empty();
+
+	// Build each data row.
+	for (i = 0; i < data_table.getNumberOfRows(); i++) {
+		// Build initial part of row plus header.
+		var data_row = "<tr>";
+		data_row += "<th>" + data_table.getValue(i, 0) + "</th>";
+
+		// Get each value and figure out how big it is compared to the
+		// max number of checkins.
+		for (j = 1; j < data_table.getNumberOfColumns(); j++) {
+			data_row += "<td>";
+
+			// Get value and insert a circle.
+			var value = parseInt(data_table.getValue(i, j));
+
+			if ((value / Analytics.checkin_habits_max) > 0.75) {
+				data_row += '<div class="circle circle-100" title="' + value + '"></div>';
+			} else if ((value / Analytics.checkin_habits_max) > 0.50) {
+				data_row += '<div class="circle circle-75" title="' + value + '"></div>';
+			} else if ((value / Analytics.checkin_habits_max) > 0.25) {
+				data_row += '<div class="circle circle-50" title="' + value + '"></div>';
+			} else if ((value / Analytics.checkin_habits_max) > 0) {
+				data_row += '<div class="circle circle-25" title="' + value + '"></div>';
+			} else {
+				data_row += '<div class="circle circle-0" title="' + value + '"></div>';
+			}
+
+			// Finish cell.
+			data_row += "</td>";
+		}
+
+		// Finish the row and insert it.
+		data_row += "</tr>";
+		$table.find("tbody").append(data_row);
+	}
+}
+
 // Adds a row to the specified analytics table.
 function add_analytics_row(table, name, timestamp) {
 	table.addRow([name, timestamp]);
