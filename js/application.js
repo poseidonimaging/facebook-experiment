@@ -5,7 +5,7 @@ var templates = {
 	analytics_count: '<li>{{count}} {{value}}</li>',
 	visit_count_person: '<div id="place_{{place_id}}_visit_with_{{person_id}}" class="fb-visit-count-person">{{visit_count}} {{person_name}}</div>',
 	visit_timestamp: "<time class='timeago' datetime='{{timestamp}}'>{{human_time}}</time>",
-	gmaps_url: "http://maps.googleapis.com/maps/api/staticmap?size={{size}}&zoom={{zoom}}&markers={{lat}},{{lng}}&sensor=false&key={{api_key}}"
+	gmaps_url: "http://maps.googleapis.com/maps/api/staticmap?size={{size}}&scale={{scale}}&zoom={{zoom}}&markers={{lat}},{{lng}}&sensor=false&key={{api_key}}"
 };
 
 // Analytics stuff
