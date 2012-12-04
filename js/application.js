@@ -93,6 +93,13 @@ $(document).ready(function () {
 			// Fade the whole thing in.
 			$("#analytics").fadeIn("slow");
 		})
+		// Handle updating the background image with the cover image
+		.on("restnap:cover_image_available", function (e, data) {
+			console.log("restnap:cover_image_available fired!");
+			var $place = $(e.target);
+
+			$place.css("background-image", "url('" + $place.data("cover_image") + "')");
+		})
 		// Handle showing location data.
 		.on("restnap:place:location_available", function (e, data) {
 			var $place = $(e.target);
