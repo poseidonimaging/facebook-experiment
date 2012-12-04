@@ -296,6 +296,20 @@ function add_analytics_row(table, name, timestamp) {
 	table.addRow([name, timestamp]);
 }
 
+// Uses the Facebook API to get a cover image.
+function get_cover_image(place_id, cover_id) {
+	console.log("get_cover_image called with place_id " + place_id + " and cover_id " + cover_id);
+	var $place = $("#place_" + place_id);
+
+	FB.api("/" + cover_id + "?fields=images", function (result) {
+		console.log(result);
+		if (result.images) {
+			$place.data("cover_image", result.images[0].source);
+			$place.trigger("restnap:cover_image_available");
+		}
+	});
+}
+
 // Uses the Facebook API to get a list of places you've visited.
 function get_locations_from_url(url) {
 	console.log("get_locations_from_url called with url " + url);
