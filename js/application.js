@@ -13,7 +13,9 @@ var Analytics = {
 	count_column: { column: 0, aggregation: google.visualization.data.count, type: 'number'},
 	checkins: new google.visualization.DataTable(),
 	cities: new google.visualization.DataTable(),
-	friends: new google.visualization.DataTable()
+	friends: new google.visualization.DataTable(),
+	checkin_habits: new google.visualization.DataTable(),
+	checkin_habits_max: 0
 };
 
 // jQuery event handlers
@@ -21,6 +23,7 @@ $(document).ready(function () {
 	init_analytics_data_table(Analytics.checkins);
 	init_analytics_data_table(Analytics.cities);
 	init_analytics_data_table(Analytics.friends);
+	init_checkin_habits_data_table(Analytics.checkin_habits);
 
 	$("#fb-login").click(function () {
 		FB.login(function(response) {
@@ -137,6 +140,20 @@ function init_analytics_data_table(table) {
 	table.addColumn("datetime", "Timestamp");
 }
 
+// Sets the checkin habits data table up. Should be called on page load.
+function init_checkin_habits_data_table(table) {
+	table.addColumn("string", "Day");
+
+	// Add hour columns
+	$.each(["12 am", "2", "4", "6", "8", "10 am", "12 pm", "2", "4", "6", "8", "10 pm"], function (idx, value) {
+		table.addColumn("number", value);
+	});
+
+	// Add days.
+	$.each(["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"], function (idx, value) {
+		table.addRow([value, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+	});
+}
 // Adds a row to the specified analytics table.
 function add_analytics_row(table, name, timestamp) {
 	table.addRow([name, timestamp]);
