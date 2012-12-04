@@ -142,6 +142,19 @@ $(document).ready(function () {
 					})
 				);
 			}
+
+			if (data.latitude && data.longitude && !$place.data("cover_image")) {
+				$place.data("cover_image", $.mustache(templates.gmaps_url, {
+						zoom: 14,
+						scale: 2,
+						size: "1170x315",
+						lat: data.latitude,
+						lng: data.longitude,
+						api_key: gmaps_api_key
+					})
+				);
+				$place.trigger("restnap:cover_image_available");
+			}
 		});
 });
 
