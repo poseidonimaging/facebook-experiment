@@ -154,6 +154,83 @@ function init_checkin_habits_data_table(table) {
 		table.addRow([value, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
 	});
 }
+
+// Increments the correct counter in the checkin habits data table. Pass in a
+// date.
+function increment_checkin_habits_counter(timestamp) {
+	// Get the row to modify.
+	var row = timestamp.getDay();
+
+	// Get column to modify.
+	var column;
+
+	switch (timestamp.getHours()) {
+		case 0:
+		case 1:
+			column = 1;
+			break;
+		case 2:
+		case 3:
+			column = 2;
+			break;
+		case 4:
+		case 5:
+			column = 3;
+			break;
+		case 6:
+		case 7:
+			column = 4;
+			break;
+		case 8:
+		case 9:
+			column = 5;
+			break;
+		case 10:
+		case 11:
+			column = 6;
+			break;
+		case 12:
+		case 13:
+			column = 7;
+			break;
+		case 14:
+		case 15:
+			column = 8;
+			break;
+		case 16:
+		case 17:
+			column = 9;
+			break;
+		case 18:
+		case 19:
+			column = 10;
+			break;
+		case 20:
+		case 21:
+			column = 11;
+			break;
+		case 22:
+		case 23:
+			column = 12;
+			break;
+		default:
+			console.error("Timestamp hours is invalid!");
+	}
+
+	// Now get the row and column.
+	var value = parseInt(Analytics.checkin_habits.getValue(row, column));
+
+	console.log("Checkin habits - " + row + "," + column + " = " + value);
+
+	// Increment and save value.
+	value++;
+	Analytics.checkin_habits.setValue(row, column, value);
+
+	// Increment checkin habits max.
+	if (value > Analytics.checkin_habits_max) {
+		Analytics.checkin_habits_max = value;
+	}
+}
 // Adds a row to the specified analytics table.
 function add_analytics_row(table, name, timestamp) {
 	table.addRow([name, timestamp]);
@@ -347,6 +424,9 @@ function get_locations_from_url(url) {
 			}
 
 			// Analytics ahoy!
+
+			// Keep track of checkin habits
+			increment_checkin_habits_counter(new Date(Date.parse(data.created_time)));
 
 			// Keep track of places.
 			if (data.place) {
