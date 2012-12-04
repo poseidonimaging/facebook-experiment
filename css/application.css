@@ -49,7 +49,8 @@
 /* Checkin habits */
 #analytics-checkin-habits 				{ font-size: 75%; }
 #analytics-checkin-habits thead th 		{ text-align: center; }
-#analytics-checkin-habits tbody td 		{ vertical-align: middle; }
+#analytics-checkin-habits tbody th 		{ text-align: right; }
+#analytics-checkin-habits tbody td 		{ vertical-align: middle; width: 24px; }
 #analytics-checkin-habits .circle 		{ background-color: #000; margin: 0 auto; }
 #analytics-checkin-habits .circle-100	{ width: 20px; height: 20px; border-radius: 50%; }
 #analytics-checkin-habits .circle-75	{ width: 15px; height: 15px; border-radius: 50%; }
