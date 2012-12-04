@@ -127,6 +127,7 @@ $(document).ready(function () {
 				$place.find("img")
 					.attr("src", $.mustache(templates.gmaps_url, {
 						zoom: 14,
+						scale: 1,
 						size: "150x150",
 						lat: data.latitude,
 						lng: data.longitude,
