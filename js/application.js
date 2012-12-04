@@ -236,6 +236,7 @@ function add_analytics_row(table, name, timestamp) {
 	table.addRow([name, timestamp]);
 }
 
+// Uses the Facebook API to get a list of places you've visited.
 function get_locations_from_url(url) {
 	console.log("get_locations_from_url called with url " + url);
 	FB.api(url, function (result) {
