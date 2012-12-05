@@ -313,7 +313,18 @@ function update_checkin_habits_html_table(data_table) {
 
 // Adds a row to the specified analytics table.
 function add_analytics_row(table, name, timestamp) {
-	table.addRow([name, timestamp]);
+	// Check for greater than zero rows.
+	if (table.getNumberOfRows() > 0) {
+		// Don't add the same name twice in a row on the same day.
+		var last_name = table.getValue(table.getNumberOfRows() - 1, 0);
+		var last_ts = table.getValue(table.getNumberOfRows() - 1, 1);
+
+		if (last_name !== name && !(last_ts.getMonth() === timestamp.getMonth() && last_ts.getDate() === timestamp.getDate() && last_ts.getYear() === timestamp.getYear())) {
+			table.addRow([name, timestamp]);
+		}
+	} else {
+		table.addRow([name, timestamp]);
+	}
 }
 
 // Uses the Facebook API to get a cover image.
