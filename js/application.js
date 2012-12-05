@@ -3,7 +3,12 @@ var fb_current_user_id;
 var gmaps_api_key = "AIzaSyCxh2fB3cLbNc5XvAWSOO_0YFuOxFoTwFg";
 var templates = {
 	analytics_count: '<li>{{count}} {{value}}</li>',
-	visit_count_person: '<div id="place_{{place_id}}_visit_with_{{person_id}}" class="fb-visit-count-person">{{visit_count}} {{person_name}}</div>',
+	visit_count_person: '<div id="place_{{place_id}}_visit_with_{{person_id}}" ' +
+							'class="fb-visit-count-person" ' +
+							'{{#hidden}}style="display: none;"{{/hidden}}' +
+						'>' +
+								'{{visit_count}} {{person_name}}' +
+						'</div>',
 	visit_timestamp: "<time class='timeago' datetime='{{timestamp}}'>{{human_time}}</time>",
 	gmaps_url: "http://maps.googleapis.com/maps/api/staticmap?size={{size}}&scale={{scale}}&zoom={{zoom}}&markers={{lat}},{{lng}}&sensor=false&key={{api_key}}"
 };
@@ -171,7 +176,8 @@ function get_locations_from_url(url) {
 									place_id: data.place.id,
 									person_id: tags[t].id,
 									person_name: tags[t].name,
-									visit_count: 1
+									visit_count: 1,
+									hidden: true
 								});
 								$place.find(".fb-visit-counts").append(visit_count_person_html);
 							}
@@ -267,13 +273,18 @@ function get_locations_from_url(url) {
 									if ($('#place_' + data.place.id + '_visit_with_' + tags[t].id).length > 0) {
 										var visit_count_person = parseInt($('#place_' + data.place.id + '_visit_with_' + tags[t].id).text());
 										visit_count_person++;
-										$('#place_' + data.place.id + '_visit_with_' + tags[t].id).text(visit_count_person + " " + tags[t].name);
+
+										// Update the count and show the visit.
+										$('#place_' + data.place.id + '_visit_with_' + tags[t].id)
+											.text(visit_count_person + " " + tags[t].name)
+											.fadeIn("slow");
 									} else {
 										var visit_count_person_html = $.mustache(templates.visit_count_person, {
 											place_id: data.place.id,
 											person_id: tags[t].id,
 											person_name: tags[t].name,
-											visit_count: 1
+											visit_count: 1,
+											hidden: true
 										});
 										$place.find(".fb-visit-counts").append(visit_count_person_html);
 									}
