@@ -201,15 +201,15 @@ function update_checkin_habits_html_table(data_table) {
 			var value = parseInt(data_table.getValue(i, j));
 
 			if ((value / Analytics.checkin_habits_max) > 0.75) {
-				data_row += '<div class="circle circle-100" title="' + value + '"></div>';
+				data_row += '<div id="checkin_habits_' + i + '_' + j + '" class="circle circle-100" title="' + value + '"></div>';
 			} else if ((value / Analytics.checkin_habits_max) > 0.50) {
-				data_row += '<div class="circle circle-75" title="' + value + '"></div>';
+				data_row += '<div id="checkin_habits_' + i + '_' + j + '" class="circle circle-75" title="' + value + '"></div>';
 			} else if ((value / Analytics.checkin_habits_max) > 0.25) {
-				data_row += '<div class="circle circle-50" title="' + value + '"></div>';
+				data_row += '<div id="checkin_habits_' + i + '_' + j + '" class="circle circle-50" title="' + value + '"></div>';
 			} else if ((value / Analytics.checkin_habits_max) > 0) {
-				data_row += '<div class="circle circle-25" title="' + value + '"></div>';
+				data_row += '<div id="checkin_habits_' + i + '_' + j + '" class="circle circle-25" title="' + value + '"></div>';
 			} else {
-				data_row += '<div class="circle circle-0" title="' + value + '"></div>';
+				data_row += '<div id="checkin_habits_' + i + '_' + j + '" class="circle circle-0" title="' + value + '"></div>';
 			}
 
 			// Finish cell.
