@@ -309,6 +309,21 @@ function get_locations_from_url(url) {
 						$this_visit.fadeIn("slow");
 					}
 				}
+			} else if (data.place) {
+				console.log("Skipping place " + data.place.name + " (place ID=" + data.place.id + ")");
+				if (data.place.location && data.place.location.city) {
+					console.log("- Has a location and city");
+				} else if (data.place.location && !data.place.location.city) {
+					console.log("- Has a location and no city");
+				}
+
+				if (data.place.phone) {
+					console.log("- Has a phone number");
+				} else {
+					console.log("- Does not have a phone number");
+				}
+			} else {
+				console.log("Skipping ID " + data.id + " because there is no attached place");
 			}
 
 			// Analytics ahoy!
