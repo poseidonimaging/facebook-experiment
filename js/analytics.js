@@ -157,8 +157,6 @@ function increment_checkin_habits_counter(timestamp) {
 	// Now get the row and column.
 	var value = parseInt(Analytics.checkin_habits.getValue(row, column));
 
-	console.log("Checkin habits - " + row + "," + column + " = " + value);
-
 	// Increment and save value.
 	value++;
 	Analytics.checkin_habits.setValue(row, column, value);
