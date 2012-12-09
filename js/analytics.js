@@ -199,18 +199,21 @@ function update_checkin_habits_html_table(data_table) {
 
 			// Get value and insert a circle.
 			var value = parseInt(data_table.getValue(i, j));
+			var percent = 0;
 
 			if ((value / Analytics.checkin_habits_max) > 0.75) {
-				data_row += '<div id="checkin_habits_' + i + '_' + j + '" class="circle circle-100" title="' + value + '"></div>';
+				percent = 100;
 			} else if ((value / Analytics.checkin_habits_max) > 0.50) {
-				data_row += '<div id="checkin_habits_' + i + '_' + j + '" class="circle circle-75" title="' + value + '"></div>';
+				percent = 75;
 			} else if ((value / Analytics.checkin_habits_max) > 0.25) {
-				data_row += '<div id="checkin_habits_' + i + '_' + j + '" class="circle circle-50" title="' + value + '"></div>';
+				percent = 50;
 			} else if ((value / Analytics.checkin_habits_max) > 0) {
-				data_row += '<div id="checkin_habits_' + i + '_' + j + '" class="circle circle-25" title="' + value + '"></div>';
+				percent = 25;
 			} else {
-				data_row += '<div id="checkin_habits_' + i + '_' + j + '" class="circle circle-0" title="' + value + '"></div>';
+				percent = 0;
 			}
+
+			data_row += '<div id="checkin_habits_' + i + '_' + j + '" class="circle circle-' + percent + '" data-title="' + value + '"></div>';
 
 			// Finish cell.
 			data_row += "</td>";
@@ -220,6 +223,9 @@ function update_checkin_habits_html_table(data_table) {
 		data_row += "</tr>";
 		$table.find("tbody").append(data_row);
 	}
+
+	// Make the popovers work.
+	$("#analytics-checkin-habits .circle").popover();
 }
 
 // Adds a row to the specified analytics table.
