@@ -243,69 +243,70 @@ function get_locations_from_url(url) {
 						$place.find(".fb-visit-count").text(visit_count + " visits");
 					}
 
-					// Show "Other visits"
-					$place.find(".fb-other-visits").fadeIn("slow");
+					// Build this visit HTML.
+					var this_visit_html = "<li>" + $.mustache(templates.visit_timestamp, {
+						timestamp: data.created_time,
+						human_time: (new Date(data.created_time)).toString()
+					});
 
-					// Don't handle other visits on the same day.
-					// FIXME: Handle unique people instead of ignoring them.
-					if (existing_date !== data.created_time.split("T")[0]) {
-						// Build this visit HTML.
-						var this_visit_html = "<li>" + $.mustache(templates.visit_timestamp, {
-							timestamp: data.created_time,
-							human_time: (new Date(data.created_time)).toString()
-						});
+					// Loop through the tags on this checkin.
+					if (tags.length > 0) {
+						var visit_with_list = [];
 
-						// Loop through the tags on this checkin.
-						if (tags.length > 0) {
-							var visit_with_list = [];
+						// Loop over the tags and add the people you've been with but not yourself.
+						for (var t = 0; t < tags.length; t++) {
+							// Don't add yourself.
+							if (tags[t].id != fb_current_user_id) {
+								visit_with_list.push(tags[t].name);
 
-							// Loop over the tags and add the people you've been with but not yourself.
-							for (var t = 0; t < tags.length; t++) {
-								// Don't add yourself.
-								if (tags[t].id != fb_current_user_id) {
-									visit_with_list.push(tags[t].name);
+								// Update the person's visit count or add a new person.
+								if ($('#place_' + data.place.id + '_visit_with_' + tags[t].id).length > 0) {
+									var visit_count_person = parseInt($('#place_' + data.place.id + '_visit_with_' + tags[t].id).text());
+									visit_count_person++;
 
-									// Update the person's visit count or add a new person.
-									if ($('#place_' + data.place.id + '_visit_with_' + tags[t].id).length > 0) {
-										var visit_count_person = parseInt($('#place_' + data.place.id + '_visit_with_' + tags[t].id).text());
-										visit_count_person++;
-
-										// Update the count and show the visit.
-										$('#place_' + data.place.id + '_visit_with_' + tags[t].id)
-											.text(visit_count_person + " " + tags[t].name)
-											.fadeIn("slow");
-									} else {
-										var visit_count_person_html = $.mustache(templates.visit_count_person, {
-											place_id: data.place.id,
-											person_id: tags[t].id,
-											person_name: tags[t].name,
-											visit_count: 1,
-											hidden: true
-										});
-										$place.find(".fb-visit-counts").append(visit_count_person_html);
-									}
+									// Update the count and show the visit.
+									$('#place_' + data.place.id + '_visit_with_' + tags[t].id)
+										.text(visit_count_person + " " + tags[t].name)
+										.fadeIn("slow");
+								} else {
+									var visit_count_person_html = $.mustache(templates.visit_count_person, {
+										place_id: data.place.id,
+										person_id: tags[t].id,
+										person_name: tags[t].name,
+										visit_count: 1,
+										hidden: true
+									});
+									$place.find(".fb-visit-counts").append(visit_count_person_html);
 								}
 							}
+						}
 
-							// Now use array_to_sentence to make it magic.
-							if (visit_with_list.length > 0) {
-								this_visit_html += " with " + array_to_sentence(visit_with_list);
-							} else {
-								this_visit_html += " by yourself";
-							}
+						// Now use array_to_sentence to make it magic.
+						if (visit_with_list.length > 0) {
+							this_visit_html += " with " + array_to_sentence(visit_with_list);
 						} else {
 							this_visit_html += " by yourself";
 						}
+					} else {
+						this_visit_html += " by yourself";
+					}
 
-						// Add closing </li>.
-						this_visit_html += "</li>";
+					// Add closing </li>.
+					this_visit_html += "</li>";
 
+					// Don't add the visit to the list if it happened on the same day.
+					if (existing_date !== data.created_time.split("T")[0]) {
 						// Create jQuery object of this visit HTML and initially hide it.
 						var $this_visit = $(this_visit_html);
 						$this_visit.hide();
 
-						// Now drop that in the DOM and fade it in.
+						// Now drop that in the DOM
 						$place.find(".fb-other-visits ul").append($this_visit);
+
+						// Show "Other visits"
+						$place.find(".fb-other-visits").fadeIn("slow");
+
+						// Fade in this visit.
 						$this_visit.fadeIn("slow");
 					}
 				}
