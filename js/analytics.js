@@ -94,7 +94,7 @@ function init_checkin_habits_data_table(table) {
 
 // Increments the correct counter in the checkin habits data table. Pass in a
 // date.
-function increment_checkin_habits_counter(timestamp) {
+function increment_checkin_habits_counter(timestamp, place_name, place_id) {
 	// Get the row to modify.
 	var row = timestamp.getDay();
 
@@ -162,6 +162,9 @@ function increment_checkin_habits_counter(timestamp) {
 	if (places === undefined || places === null) {
 		places = {};
 	}
+
+	// Add the place to the list.
+	places[place_name] = place_id;
 
 	// Increment and save value.
 	value++;
