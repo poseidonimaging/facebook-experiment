@@ -329,12 +329,12 @@ function get_locations_from_url(url) {
 
 			// Analytics ahoy!
 
-			// Keep track of checkin habits
-			increment_checkin_habits_counter(new Date(Date.parse(data.created_time)));
-
 			// Keep track of places.
 			if (data.place) {
 				add_analytics_row(Analytics.checkins, data.place.name, new Date(Date.parse(data.created_time)));
+
+				// Keep track of checkin habits
+				increment_checkin_habits_counter(new Date(Date.parse(data.created_time)), data.place.name, data.place.id);
 			}
 
 			// Keep track of cities.
