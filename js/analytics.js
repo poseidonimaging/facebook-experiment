@@ -154,12 +154,18 @@ function increment_checkin_habits_counter(timestamp) {
 			console.error("Timestamp hours is invalid!");
 	}
 
-	// Now get the row and column.
+	// Now get the value
 	var value = parseInt(Analytics.checkin_habits.getValue(row, column));
+
+	// Get the map of places, or initialize it to an object.
+	var places = Analytics.checkin_habits.getProperty(row, column, "places");
+	if (places === undefined || places === null) {
+		places = {};
+	}
 
 	// Increment and save value.
 	value++;
-	Analytics.checkin_habits.setValue(row, column, value);
+	Analytics.checkin_habits.setCell(row, column, value, null, { places: places });
 
 	// Increment checkin habits max.
 	if (value > Analytics.checkin_habits_max) {
@@ -199,6 +205,7 @@ function update_checkin_habits_html_table(data_table) {
 
 			// Get value and insert a circle.
 			var value = parseInt(data_table.getValue(i, j));
+			var title = value === 1 ? ''.concat(value, " place") : ''.concat(value, " places");
 			var percent = 0;
 
 			if ((value / Analytics.checkin_habits_max) > 0.75) {
@@ -213,7 +220,13 @@ function update_checkin_habits_html_table(data_table) {
 				percent = 0;
 			}
 
-			data_row += '<div id="checkin_habits_' + i + '_' + j + '" class="circle circle-' + percent + '" data-title="' + value + '"></div>';
+			data_row += ''.concat('<div id="checkin_habits_', i, '_', j, '"',
+									' class="circle circle-', percent, '"',
+									' data-title="', title, '"',
+									' data-trigger="hover"',
+									' data-html="true"',
+									'>',
+									'</div>');
 
 			// Finish cell.
 			data_row += "</td>";
