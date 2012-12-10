@@ -211,7 +211,7 @@ function update_checkin_habits_html_table(data_table) {
 			var value = parseInt(data_table.getValue(i, j));
 			var places = data_table.getProperty(i, j, "places");
 			var sorted_places = [];
-			var title = value === 1 ? ''.concat(value, " place") : ''.concat(value, " places");
+			var title = value === 1 ? ''.concat(value, " checkin") : ''.concat(value, " checkins");
 			var percent = 0;
 			var popover_content = "";
 
