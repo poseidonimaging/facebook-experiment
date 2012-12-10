@@ -209,8 +209,11 @@ function update_checkin_habits_html_table(data_table) {
 
 			// Get value and insert a circle.
 			var value = parseInt(data_table.getValue(i, j));
+			var places = data_table.getProperty(i, j, "places");
+			var sorted_places = [];
 			var title = value === 1 ? ''.concat(value, " place") : ''.concat(value, " places");
 			var percent = 0;
+			var popover_content = "";
 
 			if ((value / Analytics.checkin_habits_max) > 0.75) {
 				percent = 100;
@@ -224,11 +227,26 @@ function update_checkin_habits_html_table(data_table) {
 				percent = 0;
 			}
 
+			if (places) {
+				for (var place in places) {
+					sorted_places.push(place);
+				}
+
+				sorted_places = sorted_places.sort();
+
+				popover_content = "<ul>";
+				for (var idx in sorted_places) {
+					popover_content += ''.concat("<li>", sorted_places[idx], "</li>");
+				}
+				popover_content += "</ul>";
+			}
+
 			data_row += $.mustache(templates.checkin_habits_circle, {
 				row: i,
 				column: j,
 				percent: percent,
-				title: title
+				title: title,
+				content: popover_content
 			});
 
 			// Finish cell.
