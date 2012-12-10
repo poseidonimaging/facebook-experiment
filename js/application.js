@@ -15,6 +15,7 @@ var templates = {
 									' data-trigger="hover"',
 									' data-html="true"',
 									' data-content="{{content}}"',
+									' data-placement="top"',
 									'>',
 									'</div>'),
 	visit_timestamp: "<time class='timeago' datetime='{{timestamp}}'>{{human_time}}</time>",
