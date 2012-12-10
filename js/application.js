@@ -9,6 +9,14 @@ var templates = {
 						'>' +
 								'{{visit_count}} {{person_name}}' +
 						'</div>',
+	checkin_habits_circle: ''.concat('<div id="checkin_habits_{{row}}_{{column}}"',
+									' class="circle circle-{{percent}}"',
+									' data-title="{{title}}"',
+									' data-trigger="hover"',
+									' data-html="true"',
+									' data-content="{{content}}"',
+									'>',
+									'</div>'),
 	visit_timestamp: "<time class='timeago' datetime='{{timestamp}}'>{{human_time}}</time>",
 	gmaps_url: "http://maps.googleapis.com/maps/api/staticmap?size={{size}}&scale={{scale}}&zoom={{zoom}}&markers={{lat}},{{lng}}&sensor=false&key={{api_key}}"
 };
