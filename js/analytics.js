@@ -180,6 +180,7 @@ function increment_checkin_habits_counter(timestamp, place_name, place_id) {
 function update_checkin_habits_html_table(data_table) {
 	var i = 0;
 	var j = 0;
+
 	var $table = $("#analytics-checkin-habits");
 
 	// Build header row.
@@ -223,13 +224,12 @@ function update_checkin_habits_html_table(data_table) {
 				percent = 0;
 			}
 
-			data_row += ''.concat('<div id="checkin_habits_', i, '_', j, '"',
-									' class="circle circle-', percent, '"',
-									' data-title="', title, '"',
-									' data-trigger="hover"',
-									' data-html="true"',
-									'>',
-									'</div>');
+			data_row += $.mustache(templates.checkin_habits_circle, {
+				row: i,
+				column: j,
+				percent: percent,
+				title: title
+			});
 
 			// Finish cell.
 			data_row += "</td>";
