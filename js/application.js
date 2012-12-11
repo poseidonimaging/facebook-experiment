@@ -43,7 +43,7 @@ $(document).ready(function () {
 		.on("restnap:cover_image_available", function (e, data) {
 			var $place = $(e.target);
 
-			$place.css("background-image", "url('" + $place.data("cover_image") + "')");
+			$place.css("background-image", ''.concat("url('", $place.data("cover_image"), "')"));
 		})
 		// Handle showing location data.
 		.on("restnap:place:location_available", function (e, data) {
