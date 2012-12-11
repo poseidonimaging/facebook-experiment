@@ -139,7 +139,7 @@ function get_locations_from_url(url) {
 					// Ladies and gentlemen, a really long jQuery chain!
 					$place
 						// Set some stuff on the place object
-						.attr("id", "place_" + data.place.id)
+						.attr("id", ''.concat("place_", data.place.id))
 						.data("facebook-id", data.place.id)
 						.addClass("vcard")
 						// Hide some stuff that might not always show up.
