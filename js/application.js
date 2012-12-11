@@ -3,12 +3,12 @@ var fb_current_user_id;
 var gmaps_api_key = "AIzaSyCxh2fB3cLbNc5XvAWSOO_0YFuOxFoTwFg";
 var templates = {
 	analytics_count: '<li>{{count}} {{value}}</li>',
-	visit_count_person: '<div id="place_{{place_id}}_visit_with_{{person_id}}" ' +
-							'class="fb-visit-count-person" ' +
-							'{{#hidden}}style="display: none;"{{/hidden}}' +
-						'>' +
-								'{{visit_count}} {{person_name}}' +
-						'</div>',
+	visit_count_person: ''.concat('<div id="place_{{place_id}}_visit_with_{{person_id}}" ',
+							'class="fb-visit-count-person" ',
+							'{{#hidden}}style="display: none;"{{/hidden}}',
+						'>',
+								'{{visit_count}} {{person_name}}',
+						'</div>'),
 	checkin_habits_circle: ''.concat('<div id="checkin_habits_{{row}}_{{column}}"',
 									' class="circle circle-{{percent}}"',
 									' data-title="{{title}}"',
