@@ -67,6 +67,8 @@ $(document).ready(function () {
 			$("#analytics").fadeIn("slow");
 		})
 		.on("click", ".filters a", function (e) {
+			e.preventDefault();
+
 			var $target = $(e.target);
 
 			$target
