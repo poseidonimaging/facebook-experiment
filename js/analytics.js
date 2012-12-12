@@ -52,10 +52,10 @@ $(document).ready(function () {
 			var cities_grouped = google.visualization.data.group(Analytics.cities, [0], [Analytics.count_column]);
 			var city_rows = cities_grouped.getSortedRows([{ column: 1, desc: true }]).slice(0,5);
 
-			$("#analytics-cities ul").empty();
+			$("#analytics-cities .data ul").empty();
 
 			$.each(city_rows, function () {
-				$("#analytics-cities ul")
+				$("#analytics-cities .data ul")
 					.append($.mustache(templates.analytics_count, {
 						count: cities_grouped.getValue(parseInt(this), 1),
 						value: cities_grouped.getValue(parseInt(this), 0)
