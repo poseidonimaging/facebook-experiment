@@ -18,47 +18,44 @@ $(document).ready(function () {
 	$(document)
 		// Handle fresh analytics information.
 		.on("restnap:analytics:data_available", function (e) {
-			// Show the checkins.
-			var checkins_grouped = google.visualization.data.group(Analytics.checkins, [0], [Analytics.count_column]);
-			var checkin_rows = checkins_grouped.getSortedRows([{ column: 1, desc: true }]).slice(0,5);
-
+			// Get checkin info.
 			$("#analytics-checkins .data ul").empty();
 
-			$.each(checkin_rows, function () {
+			var checkins = distill_analytics(Analytics.checkins, $("#analytics-checkins .filters .active").data("filter"));
+
+			$.each(checkins[1], function () {
 				$("#analytics-checkins .data ul")
 					.append($.mustache(templates.analytics_count, {
-						count: checkins_grouped.getValue(parseInt(this), 1),
-						value: checkins_grouped.getValue(parseInt(this), 0)
+						count: checkins[0].getValue(parseInt(this), 1),
+						value: checkins[0].getValue(parseInt(this), 0)
 					})
 				);
 			});
 
 			// Show friend info.
-			var friends_grouped = google.visualization.data.group(Analytics.friends, [0], [Analytics.count_column]);
-			var friend_rows = friends_grouped.getSortedRows([{ column: 1, desc: true }]).slice(0,5);
-
 			$("#analytics-friends .data ul").empty();
 
-			$.each(friend_rows, function () {
+			var friends = distill_analytics(Analytics.friends, $("#analytics-friends .filters .active").data("filter"));
+
+			$.each(friends[1], function () {
 				$("#analytics-friends .data ul")
 					.append($.mustache(templates.analytics_count, {
-						count: friends_grouped.getValue(parseInt(this), 1),
-						value: friends_grouped.getValue(parseInt(this), 0)
+						count: friends[0].getValue(parseInt(this), 1),
+						value: friends[0].getValue(parseInt(this), 0)
 					})
 				);
 			});
 
 			// Show city info.
-			var cities_grouped = google.visualization.data.group(Analytics.cities, [0], [Analytics.count_column]);
-			var city_rows = cities_grouped.getSortedRows([{ column: 1, desc: true }]).slice(0,5);
-
 			$("#analytics-cities .data ul").empty();
 
-			$.each(city_rows, function () {
+			var cities = distill_analytics(Analytics.cities, $("#analytics-cities .filters .active").data("filter"));
+
+			$.each(cities[1], function () {
 				$("#analytics-cities .data ul")
 					.append($.mustache(templates.analytics_count, {
-						count: cities_grouped.getValue(parseInt(this), 1),
-						value: cities_grouped.getValue(parseInt(this), 0)
+						count: cities[0].getValue(parseInt(this), 1),
+						value: cities[0].getValue(parseInt(this), 0)
 					})
 				);
 			});
@@ -79,6 +76,8 @@ $(document).ready(function () {
 					.end()
 				.end()
 				.addClass("active");
+
+			$(document).trigger("restnap:analytics:data_available");
 		})
 });
 
@@ -286,5 +285,38 @@ function add_analytics_row(table, name, timestamp) {
 		}
 	} else {
 		table.addRow([name, timestamp]);
+	}
+}
+
+// Returns an array with the grouped analytics and the sorted rows numbers, in that order.
+function distill_analytics(table, filter) {
+	switch (filter) {
+		case "all":
+			// Don't filter the checkins.
+			var grouped = google.visualization.data.group(table, [0], [Analytics.count_column]);
+			return [grouped, grouped.getSortedRows([{ column: 1, desc: true }]).slice(0,5)];
+			break;
+		case "month":
+			// Filter the checkins by month.
+			var now = new Date();
+			var rows_filtered = table.getFilteredRows([
+				{ column: 1, minValue: (new Date(now - milliseconds_in_month)), maxValue: now }
+			]);
+			var view = new google.visualization.DataView(table);
+			view.setRows(rows_filtered);
+			var grouped = google.visualization.data.group(view.toDataTable(), [0], [Analytics.count_column]);
+			return [grouped, grouped.getSortedRows([{ column: 1, desc: true }]).slice(0,5)];
+			break;
+		case "year":
+			// Filter the checkins by year.
+			var now = new Date();
+			var rows_filtered = table.getFilteredRows([
+				{ column: 1, minValue: (new Date(now - milliseconds_in_year)), maxValue: now }
+			]);
+			var view = new google.visualization.DataView(table);
+			view.setRows(rows_filtered);
+			var grouped = google.visualization.data.group(view.toDataTable(), [0], [Analytics.count_column]);
+			return [grouped, grouped.getSortedRows([{ column: 1, desc: true }]).slice(0,5)];
+			break;
 	}
 }
