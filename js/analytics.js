@@ -307,6 +307,28 @@ function distill_analytics(table, filter) {
 			var grouped = google.visualization.data.group(view.toDataTable(), [0], [Analytics.count_column]);
 			return [grouped, grouped.getSortedRows([{ column: 1, desc: true }]).slice(0,5)];
 			break;
+		case "quarter":
+			// Filter the checkins by quarter.
+			var now = new Date();
+			var rows_filtered = table.getFilteredRows([
+				{ column: 1, minValue: (new Date(now - (milliseconds_in_month * 3))), maxValue: now }
+			]);
+			var view = new google.visualization.DataView(table);
+			view.setRows(rows_filtered);
+			var grouped = google.visualization.data.group(view.toDataTable(), [0], [Analytics.count_column]);
+			return [grouped, grouped.getSortedRows([{ column: 1, desc: true }]).slice(0,5)];
+			break;
+		case "half":
+			// Filter the checkins by half.
+			var now = new Date();
+			var rows_filtered = table.getFilteredRows([
+				{ column: 1, minValue: (new Date(now - (milliseconds_in_month * 6))), maxValue: now }
+			]);
+			var view = new google.visualization.DataView(table);
+			view.setRows(rows_filtered);
+			var grouped = google.visualization.data.group(view.toDataTable(), [0], [Analytics.count_column]);
+			return [grouped, grouped.getSortedRows([{ column: 1, desc: true }]).slice(0,5)];
+			break;
 		case "year":
 			// Filter the checkins by year.
 			var now = new Date();
