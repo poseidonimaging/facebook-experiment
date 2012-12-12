@@ -69,6 +69,17 @@ $(document).ready(function () {
 			// Fade the whole thing in.
 			$("#analytics").fadeIn("slow");
 		})
+		.on("click", ".filters a", function (e) {
+			var $target = $(e.target);
+
+			$target
+				.closest("ul")
+					.find("a")
+						.removeClass("active")
+					.end()
+				.end()
+				.addClass("active");
+		})
 });
 
 // Sets the DataTable up. Should be called on page load.
