@@ -22,10 +22,10 @@ $(document).ready(function () {
 			var checkins_grouped = google.visualization.data.group(Analytics.checkins, [0], [Analytics.count_column]);
 			var checkin_rows = checkins_grouped.getSortedRows([{ column: 1, desc: true }]).slice(0,5);
 
-			$("#analytics-checkins ul").empty();
+			$("#analytics-checkins .data ul").empty();
 
 			$.each(checkin_rows, function () {
-				$("#analytics-checkins ul")
+				$("#analytics-checkins .data ul")
 					.append($.mustache(templates.analytics_count, {
 						count: checkins_grouped.getValue(parseInt(this), 1),
 						value: checkins_grouped.getValue(parseInt(this), 0)
