@@ -57,3 +57,7 @@
 #analytics-checkin-habits .circle-50	{ width: 10px; height: 10px; border-radius: 50%; }
 #analytics-checkin-habits .circle-25	{ width: 5px; height: 5px; border-radius: 50%; }
 #analytics-checkin-habits .circle-0		{ width: 1px; height: 1px; border-radius: 50%; }
+
+/* Analytics */
+#analytics .filters 					{ color: #666; }
+#analytics .filters a:after				{ content: "|"; }
