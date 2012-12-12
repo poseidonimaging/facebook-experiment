@@ -1,6 +1,8 @@
 // Global variables because I'm lazy.
 var fb_current_user_id;
 var gmaps_api_key = "AIzaSyCxh2fB3cLbNc5XvAWSOO_0YFuOxFoTwFg";
+var milliseconds_in_month = 2629742400;
+var milliseconds_in_year = 31556916000;
 var templates = {
 	analytics_count: '<li>{{count}} {{value}}</li>',
 	visit_count_person: ''.concat('<div id="place_{{place_id}}_visit_with_{{person_id}}" ',
