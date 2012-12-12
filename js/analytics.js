@@ -37,10 +37,10 @@ $(document).ready(function () {
 			var friends_grouped = google.visualization.data.group(Analytics.friends, [0], [Analytics.count_column]);
 			var friend_rows = friends_grouped.getSortedRows([{ column: 1, desc: true }]).slice(0,5);
 
-			$("#analytics-friends ul").empty();
+			$("#analytics-friends .data ul").empty();
 
 			$.each(friend_rows, function () {
-				$("#analytics-friends ul")
+				$("#analytics-friends .data ul")
 					.append($.mustache(templates.analytics_count, {
 						count: friends_grouped.getValue(parseInt(this), 1),
 						value: friends_grouped.getValue(parseInt(this), 0)
