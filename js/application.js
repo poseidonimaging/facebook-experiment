@@ -3,6 +3,8 @@ var fb_current_user_id;
 var gmaps_api_key = "AIzaSyCxh2fB3cLbNc5XvAWSOO_0YFuOxFoTwFg";
 var milliseconds_in_month = 2629742400;
 var milliseconds_in_year = 31556916000;
+var google_map;
+var google_geocoder = new google.maps.Geocoder();
 var templates = {
 	analytics_count: '<li>{{count}} {{value}}</li>',
 	visit_count_person: ''.concat('<div id="place_{{place_id}}_visit_with_{{person_id}}" ',
@@ -26,14 +28,27 @@ var templates = {
 
 // jQuery event handlers
 $(document).ready(function () {
+	// Handle FB login button
 	$("#fb-login").click(function () {
 		FB.login(function(response) {
 			if (response.authResponse) {
 				fb_current_user_id = response.authResponse.userID;
 
-				$("#welcome").fadeOut("slow");
-				$("#result_info").fadeIn("slow");
-				get_locations_from_url("/me/locations?fields=place.fields(id,name,location,about,phone,picture,cover),created_time,tags,from");
+				$("#welcome").fadeOut("slow", function () {
+					$("#result_info").fadeIn("slow", function () {
+						// Init the Google map
+						google_map = new google.maps.Map($("#google_map")[0], {
+							center: new google.maps.LatLng(0, 0),
+							zoom: 8,
+							mapTypeId: google.maps.MapTypeId.ROADMAP,
+							streetViewControl: false,
+							mapTypeControl: false
+						});
+
+						// Get crackin' on places!
+						get_locations_from_url("/me/locations?fields=place.fields(id,name,location,about,phone,picture,cover),created_time,tags,from");
+					});
+				});
 			} else {
 				console.log('User cancelled login or did not fully authorize.');
 			}
