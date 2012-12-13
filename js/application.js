@@ -55,6 +55,7 @@ $(document).ready(function () {
 		}, { scope: "user_checkins,friends_checkins,user_status,friends_status,user_photos,friends_photos" });
 	});
 
+	// Handle custom events.
 	$(document)
 		// Handle updating the background image with the cover image
 		.on("restnap:cover_image_available", function (e, data) {
@@ -90,6 +91,15 @@ $(document).ready(function () {
 
 			if (data.longitude) {
 				$place.data("facebook-location-lng", data.longitude);
+			}
+
+			if (data.latitude && data.longitude && google_map) {
+				var point = new google.maps.LatLng(data.latitude, data.longitude);
+				var marker = new google.maps.Marker({
+					map: google_map,
+					position: point,
+					title: $place.find(".fn").html()
+				});
 			}
 
 			if (data.latitude && data.longitude && $place.find("img:not(.fb-photo)").length > 0) {
