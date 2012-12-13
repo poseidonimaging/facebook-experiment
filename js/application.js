@@ -5,6 +5,8 @@ var milliseconds_in_month = 2629742400;
 var milliseconds_in_year = 31556916000;
 var google_map;
 var google_geocoder = new google.maps.Geocoder();
+var google_map_heatmap_data = [];
+var google_map_heatmap;
 var templates = {
 	analytics_count: '<li>{{count}} {{value}}</li>',
 	visit_count_person: ''.concat('<div id="place_{{place_id}}_visit_with_{{person_id}}" ',
@@ -95,11 +97,17 @@ $(document).ready(function () {
 
 			if (data.latitude && data.longitude && google_map) {
 				var point = new google.maps.LatLng(data.latitude, data.longitude);
-				var marker = new google.maps.Marker({
-					map: google_map,
-					position: point,
-					title: $place.find(".fn").html()
-				});
+				google_map_heatmap_data.push({ location: point, weight: parseInt($place.find(".fb-visit-count").text()) });
+
+				if (google_map_heatmap) {
+					google_map_heatmap.setData(google_map_heatmap_data);
+				} else {
+					google_map_heatmap = new google.maps.visualization.HeatmapLayer({
+						data: google_map_heatmap_data,
+						map: google_map,
+						radius: 15
+					});
+				}
 			}
 
 			if (data.latitude && data.longitude && $place.find("img:not(.fb-photo)").length > 0) {
