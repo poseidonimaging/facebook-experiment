@@ -139,6 +139,52 @@ $(document).ready(function () {
 		});
 });
 
+// Converts an array of map styles to something that can be used with the static maps API.
+function gmaps_style_for_static_maps(styles) {
+	var style_static = "";
+
+	// Loop over each style
+	$.each(styles, function (index, value) {
+		style_static = style_static.concat('&style=');
+
+		// Add the feature type if needed.
+		if (value.featureType) {
+			style_static = style_static.concat('feature:', value.featureType, '%7C')
+		}
+
+		// Add the element type if needed.
+		if (value.elementType) {
+			style_static = style_static.concat('element:', value.elementType, '%7C')
+		}
+
+		// Are there stylers? (there should be)
+		if (value.stylers) {
+			// Loop the stylers
+			$.each(value.stylers, function (styler_index, styler_value) {
+				// Loop each styler's properties (should be one)
+				for (var prop in styler_value) {
+					// Hue is a special case because we need to convert the
+					// # to 0x.
+					if (prop == "hue") {
+						style_static = style_static.concat(
+							prop, ":", styler_value[prop].replace("#", "0x"), "%7C"
+						)
+					} else {
+						style_static = style_static.concat(
+							prop, ":", styler_value[prop], "%7C"
+						)
+					}
+				}
+			});
+		}
+	});
+
+	// Remove redundant %7C& and make it just &.
+	style_static = style_static.replace("%7C&", "&")
+
+	return style_static;
+}
+
 // Uses the Facebook API to get a cover image.
 function get_cover_image(place_id, cover_id) {
 	var $place = $("#place_" + place_id);
