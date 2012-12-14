@@ -44,7 +44,8 @@ $(document).ready(function () {
 							zoom: 8,
 							mapTypeId: google.maps.MapTypeId.ROADMAP,
 							streetViewControl: false,
-							mapTypeControl: false
+							mapTypeControl: false,
+							styles: gmapNightStyle
 						});
 
 						// Get crackin' on places!
