@@ -131,7 +131,8 @@ $(document).ready(function () {
 						size: "1170x315",
 						lat: data.latitude,
 						lng: data.longitude,
-						api_key: gmaps_api_key
+						api_key: gmaps_api_key,
+						style: gmaps_style_for_static_maps(gmapFreshStyle)
 					})
 				);
 				$place.trigger("restnap:cover_image_available");
