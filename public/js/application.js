@@ -3,6 +3,10 @@ var fb_current_user_id;
 var gmaps_api_key = "AIzaSyCxh2fB3cLbNc5XvAWSOO_0YFuOxFoTwFg";
 var milliseconds_in_month = 2629742400;
 var milliseconds_in_year = 31556916000;
+var google_map;
+var google_geocoder = new google.maps.Geocoder();
+var google_map_heatmap_data = [];
+var google_map_heatmap;
 var templates = {
 	analytics_count: '<li>{{count}} {{value}}</li>',
 	visit_count_person: ''.concat('<div id="place_{{place_id}}_visit_with_{{person_id}}" ',
@@ -21,25 +25,40 @@ var templates = {
 									'>',
 									'</div>'),
 	visit_timestamp: "<time class='timeago' datetime='{{timestamp}}'>{{human_time}}</time>",
-	gmaps_url: "http://maps.googleapis.com/maps/api/staticmap?size={{size}}&scale={{scale}}&zoom={{zoom}}&markers={{lat}},{{lng}}&sensor=false&key={{api_key}}"
+	gmaps_url: "http://maps.googleapis.com/maps/api/staticmap?size={{size}}&scale={{scale}}&zoom={{zoom}}&markers={{lat}},{{lng}}&sensor=false{{#style}}{{{style}}}{{/style}}&key={{api_key}}"
 };
 
 // jQuery event handlers
 $(document).ready(function () {
+	// Handle FB login button
 	$("#fb-login").click(function () {
 		FB.login(function(response) {
 			if (response.authResponse) {
 				fb_current_user_id = response.authResponse.userID;
 
-				$("#welcome").fadeOut("slow");
-				$("#result_info").fadeIn("slow");
-				get_locations_from_url("/me/locations?fields=place.fields(id,name,location,about,phone,picture,cover),created_time,tags,from");
+				$("#welcome").fadeOut("slow", function () {
+					$("#result_info").fadeIn("slow", function () {
+						// Init the Google map
+						google_map = new google.maps.Map($("#google_map")[0], {
+							center: new google.maps.LatLng(0, 0),
+							zoom: 8,
+							mapTypeId: google.maps.MapTypeId.ROADMAP,
+							streetViewControl: false,
+							mapTypeControl: false,
+							styles: gmapNightStyle
+						});
+
+						// Get crackin' on places!
+						get_locations_from_url("/me/locations?fields=place.fields(id,name,location,about,phone,picture,cover),created_time,tags,from");
+					});
+				});
 			} else {
 				console.log('User cancelled login or did not fully authorize.');
 			}
 		}, { scope: "user_checkins,friends_checkins,user_status,friends_status,user_photos,friends_photos" });
 	});
 
+	// Handle custom events.
 	$(document)
 		// Handle updating the background image with the cover image
 		.on("restnap:cover_image_available", function (e, data) {
@@ -77,6 +96,21 @@ $(document).ready(function () {
 				$place.data("facebook-location-lng", data.longitude);
 			}
 
+			if (data.latitude && data.longitude && google_map) {
+				var point = new google.maps.LatLng(data.latitude, data.longitude);
+				google_map_heatmap_data.push({ location: point, weight: parseInt($place.find(".fb-visit-count").text()) });
+
+				if (google_map_heatmap) {
+					google_map_heatmap.setData(google_map_heatmap_data);
+				} else {
+					google_map_heatmap = new google.maps.visualization.HeatmapLayer({
+						data: google_map_heatmap_data,
+						map: google_map,
+						radius: 15
+					});
+				}
+			}
+
 			if (data.latitude && data.longitude && $place.find("img:not(.fb-photo)").length > 0) {
 				$place.find("img")
 					.attr("src", $.mustache(templates.gmaps_url, {
@@ -97,13 +131,60 @@ $(document).ready(function () {
 						size: "1170x315",
 						lat: data.latitude,
 						lng: data.longitude,
-						api_key: gmaps_api_key
+						api_key: gmaps_api_key,
+						style: gmaps_style_for_static_maps(gmapFreshStyle)
 					})
 				);
 				$place.trigger("restnap:cover_image_available");
 			}
 		});
 });
+
+// Converts an array of map styles to something that can be used with the static maps API.
+function gmaps_style_for_static_maps(styles) {
+	var style_static = "";
+
+	// Loop over each style
+	$.each(styles, function (index, value) {
+		style_static = style_static.concat('&style=');
+
+		// Add the feature type if needed.
+		if (value.featureType) {
+			style_static = style_static.concat('feature:', value.featureType, '%7C')
+		}
+
+		// Add the element type if needed.
+		if (value.elementType) {
+			style_static = style_static.concat('element:', value.elementType, '%7C')
+		}
+
+		// Are there stylers? (there should be)
+		if (value.stylers) {
+			// Loop the stylers
+			$.each(value.stylers, function (styler_index, styler_value) {
+				// Loop each styler's properties (should be one)
+				for (var prop in styler_value) {
+					// Hue is a special case because we need to convert the
+					// # to 0x.
+					if (prop == "hue") {
+						style_static = style_static.concat(
+							prop, ":", styler_value[prop].replace("#", "0x"), "%7C"
+						)
+					} else {
+						style_static = style_static.concat(
+							prop, ":", styler_value[prop], "%7C"
+						)
+					}
+				}
+			});
+		}
+	});
+
+	// Remove redundant %7C& and make it just &.
+	style_static = style_static.replace("%7C&", "&")
+
+	return style_static;
+}
 
 // Uses the Facebook API to get a cover image.
 function get_cover_image(place_id, cover_id) {
@@ -120,166 +201,66 @@ function get_cover_image(place_id, cover_id) {
 // Uses the Facebook API to get a list of places you've visited.
 function get_locations_from_url(url) {
 	FB.api(url, function (result) {
-		for (var i = 0, l = result.data.length; i < l; i++) {
-			var data = result.data[i];
+		if (result && result.data) {
+			for (var i = 0, l = result.data.length; i < l; i++) {
+				var data = result.data[i];
 
-			// Make sure tags always includes the from and the tags, if they
-			// are available.
-			var tags = [];
-			if (data.tags && data.tags.data) {
-				tags = tags.concat(data.tags.data);
-			}
-			if (data.from) {
-				tags.push(data.from);
-			}
+				// Make sure tags always includes the from and the tags, if they
+				// are available.
+				var tags = [];
+				if (data.tags && data.tags.data) {
+					tags = tags.concat(data.tags.data);
+				}
+				if (data.from) {
+					tags.push(data.from);
+				}
 
-			// Ensure there's always a place record so we don't attempt to access <undefined>.<whatever>.
-			if (data.place && (data.place.phone || (data.place.location && data.place.location.city))) {
-				if ($("#place_" + data.place.id).length == 0) {
-					var $place = $("#place_template").clone().find("li").first();
+				// Ensure there's always a place record so we don't attempt to access <undefined>.<whatever>.
+				if (data.place && (data.place.phone || (data.place.location && data.place.location.city))) {
+					if ($("#place_" + data.place.id).length == 0) {
+						var $place = $("#place_template").clone().find("li").first();
 
-					// Ladies and gentlemen, a really long jQuery chain!
-					$place
-						// Set some stuff on the place object
-						.attr("id", ''.concat("place_", data.place.id))
-						.data("facebook-id", data.place.id)
-						.addClass("vcard")
-						// Hide some stuff that might not always show up.
-						.find(".fb-other-visits")
-							.hide()
-						.end()
-						.find(".fb-about")
-							.hide()
-						.end()
-						.find(".tel")
-							.hide()
-						.end()
-						.find(".adr, .adr *")
-							.hide()
-						.end()
-						// Set timestamp.
-						.find("time")
-							.addClass("timeago")
-							.attr("datetime", data.created_time)
-							.text((new Date(data.created_time)).toString())
-						.end()
-						// Set place name.
-						.find("h4 .fn")
-							.text(data.place.name)
-						.end();
+						// Ladies and gentlemen, a really long jQuery chain!
+						$place
+							// Set some stuff on the place object
+							.attr("id", ''.concat("place_", data.place.id))
+							.data("facebook-id", data.place.id)
+							.addClass("vcard")
+							// Hide some stuff that might not always show up.
+							.find(".fb-other-visits")
+								.hide()
+							.end()
+							.find(".fb-about")
+								.hide()
+							.end()
+							.find(".tel")
+								.hide()
+							.end()
+							.find(".adr, .adr *")
+								.hide()
+							.end()
+							// Set timestamp.
+							.find("time")
+								.addClass("timeago")
+								.attr("datetime", data.created_time)
+								.text((new Date(data.created_time)).toString())
+							.end()
+							// Set place name.
+							.find("h4 .fn")
+								.text(data.place.name)
+							.end();
 
-					// Populate visited with list if we can.
-					if (tags.length > 0 && $place.find(".fb-visit-with-list").text() == "by yourself") {
-						var visit_with_list = [];
+						// Populate visited with list if we can.
+						if (tags.length > 0 && $place.find(".fb-visit-with-list").text() == "by yourself") {
+							var visit_with_list = [];
 
-						// Loop over the tags and add the people you've been with but not yourself.
-						for (var t = 0; t < tags.length; t++) {
-							// Don't add yourself.
-							if (tags[t].id != fb_current_user_id) {
-								visit_with_list.push(tags[t].name);
+							// Loop over the tags and add the people you've been with but not yourself.
+							for (var t = 0; t < tags.length; t++) {
+								// Don't add yourself.
+								if (tags[t].id != fb_current_user_id) {
+									visit_with_list.push(tags[t].name);
 
-								// Add to the list in the top-right.
-								var visit_count_person_html = $.mustache(templates.visit_count_person, {
-									place_id: data.place.id,
-									person_id: tags[t].id,
-									person_name: tags[t].name,
-									visit_count: 1,
-									hidden: true
-								});
-								$place.find(".fb-visit-counts").append(visit_count_person_html);
-							}
-						}
-
-						// Now use array_to_sentence to make it magic.
-						if (visit_with_list.length > 0) {
-							$place.find(".fb-visit-with-list").text("with " + array_to_sentence(visit_with_list));
-						}
-					}
-
-					// Add about text if any.
-					if (data.place.about) {
-						$place.find(".fb-about").text(data.place.about);
-					}
-
-					// Add phone number if any.
-					if (data.place.phone) {
-						$place.find(".tel").text(data.place.phone);
-					}
-
-					// Set photo if any.
-					if (data.place.picture && !data.place.picture.data.is_silhouette) {
-						$place.find("img")
-							.attr("src", "https://graph.facebook.com/" + data.place.id + "/picture?width=150&height=150")
-							.addClass("fb-photo");
-					}
-
-					// so we can fade it in after adding it.
-					$place.hide();
-
-					// Now add the place and fade it in.
-					$("#places").append($place);
-					$place.fadeIn("slow");
-
-					// If there's a cover image, fetch the highest resolution one we can get.
-					if (data.place.cover && data.place.cover.cover_id) {
-						get_cover_image(data.place.id, data.place.cover.cover_id);
-					}
-
-					// Fire an event that we have location information!
-					if (data.place.location) {
-						$place.trigger("restnap:place:location_available", data.place.location);
-					}
-
-					// Increment the place count.
-					var place_count = parseInt($("#result_info span").text());
-					place_count++;
-
-					if (place_count == 1) {
-						$("#result_info span").text(place_count + " place");
-					} else {
-						$("#result_info span").text(place_count + " places");
-					}
-				} else {
-					// Place already exists in the DOM, update the existing item then.
-					var $place = $("#place_" + data.place.id);
-
-					// Don't increment the visit count if we visited the place multiple times
-					// in the same time.
-					var existing_date = $place.find("h4 time").attr("datetime").split("T")[0];
-
-					if (existing_date !== data.created_time.split("T")[0]) {
-						// Update visit count.
-						var visit_count = parseInt($place.find(".fb-visit-count").text());
-						visit_count++;
-						$place.find(".fb-visit-count").text(visit_count + " visits");
-					}
-
-					// Build this visit HTML.
-					var this_visit_html = "<li>" + $.mustache(templates.visit_timestamp, {
-						timestamp: data.created_time,
-						human_time: (new Date(data.created_time)).toString()
-					});
-
-					// Loop through the tags on this checkin.
-					if (tags.length > 0) {
-						var visit_with_list = [];
-
-						// Loop over the tags and add the people you've been with but not yourself.
-						for (var t = 0; t < tags.length; t++) {
-							// Don't add yourself.
-							if (tags[t].id != fb_current_user_id) {
-								visit_with_list.push(tags[t].name);
-
-								// Update the person's visit count or add a new person.
-								if ($('#place_' + data.place.id + '_visit_with_' + tags[t].id).length > 0) {
-									var visit_count_person = parseInt($('#place_' + data.place.id + '_visit_with_' + tags[t].id).text());
-									visit_count_person++;
-
-									// Update the count and show the visit.
-									$('#place_' + data.place.id + '_visit_with_' + tags[t].id)
-										.text(visit_count_person + " " + tags[t].name)
-										.fadeIn("slow");
-								} else {
+									// Add to the list in the top-right.
 									var visit_count_person_html = $.mustache(templates.visit_count_person, {
 										place_id: data.place.id,
 										person_id: tags[t].id,
@@ -290,74 +271,176 @@ function get_locations_from_url(url) {
 									$place.find(".fb-visit-counts").append(visit_count_person_html);
 								}
 							}
+
+							// Now use array_to_sentence to make it magic.
+							if (visit_with_list.length > 0) {
+								$place.find(".fb-visit-with-list").text("with " + array_to_sentence(visit_with_list));
+							}
 						}
 
-						// Now use array_to_sentence to make it magic.
-						if (visit_with_list.length > 0) {
-							this_visit_html += " with " + array_to_sentence(visit_with_list);
+						// Add about text if any.
+						if (data.place.about) {
+							$place.find(".fb-about").text(data.place.about);
+						}
+
+						// Add phone number if any.
+						if (data.place.phone) {
+							$place.find(".tel").text(data.place.phone);
+						}
+
+						// Set photo if any.
+						if (data.place.picture && !data.place.picture.data.is_silhouette) {
+							$place.find("img")
+								.attr("src", "https://graph.facebook.com/" + data.place.id + "/picture?width=150&height=150")
+								.addClass("fb-photo");
+						}
+
+						// so we can fade it in after adding it.
+						$place.hide();
+
+						// Now add the place and fade it in.
+						$("#places").append($place);
+						$place.fadeIn("slow");
+
+						// If there's a cover image, fetch the highest resolution one we can get.
+						if (data.place.cover && data.place.cover.cover_id) {
+							get_cover_image(data.place.id, data.place.cover.cover_id);
+						}
+
+						// Fire an event that we have location information!
+						if (data.place.location) {
+							$place.trigger("restnap:place:location_available", data.place.location);
+						}
+
+						// Increment the place count.
+						var place_count = parseInt($("#result_info span").text());
+						place_count++;
+
+						if (place_count == 1) {
+							$("#result_info span").text(place_count + " place");
+						} else {
+							$("#result_info span").text(place_count + " places");
+						}
+					} else {
+						// Place already exists in the DOM, update the existing item then.
+						var $place = $("#place_" + data.place.id);
+
+						// Don't increment the visit count if we visited the place multiple times
+						// in the same time.
+						var existing_date = $place.find("h4 time").attr("datetime").split("T")[0];
+
+						if (existing_date !== data.created_time.split("T")[0]) {
+							// Update visit count.
+							var visit_count = parseInt($place.find(".fb-visit-count").text());
+							visit_count++;
+							$place.find(".fb-visit-count").text(visit_count + " visits");
+						}
+
+						// Build this visit HTML.
+						var this_visit_html = "<li>" + $.mustache(templates.visit_timestamp, {
+							timestamp: data.created_time,
+							human_time: (new Date(data.created_time)).toString()
+						});
+
+						// Loop through the tags on this checkin.
+						if (tags.length > 0) {
+							var visit_with_list = [];
+
+							// Loop over the tags and add the people you've been with but not yourself.
+							for (var t = 0; t < tags.length; t++) {
+								// Don't add yourself.
+								if (tags[t].id != fb_current_user_id) {
+									visit_with_list.push(tags[t].name);
+
+									// Update the person's visit count or add a new person.
+									if ($('#place_' + data.place.id + '_visit_with_' + tags[t].id).length > 0) {
+										var visit_count_person = parseInt($('#place_' + data.place.id + '_visit_with_' + tags[t].id).text());
+										visit_count_person++;
+
+										// Update the count and show the visit.
+										$('#place_' + data.place.id + '_visit_with_' + tags[t].id)
+											.text(visit_count_person + " " + tags[t].name)
+											.fadeIn("slow");
+									} else {
+										var visit_count_person_html = $.mustache(templates.visit_count_person, {
+											place_id: data.place.id,
+											person_id: tags[t].id,
+											person_name: tags[t].name,
+											visit_count: 1,
+											hidden: true
+										});
+										$place.find(".fb-visit-counts").append(visit_count_person_html);
+									}
+								}
+							}
+
+							// Now use array_to_sentence to make it magic.
+							if (visit_with_list.length > 0) {
+								this_visit_html += " with " + array_to_sentence(visit_with_list);
+							} else {
+								this_visit_html += " by yourself";
+							}
 						} else {
 							this_visit_html += " by yourself";
 						}
+
+						// Add closing </li>.
+						this_visit_html += "</li>";
+
+						// Don't add the visit to the list if it happened on the same day.
+						if (existing_date !== data.created_time.split("T")[0]) {
+							// Create jQuery object of this visit HTML and initially hide it.
+							var $this_visit = $(this_visit_html);
+							$this_visit.hide();
+
+							// Now drop that in the DOM
+							$place.find(".fb-other-visits ul").append($this_visit);
+
+							// Show "Other visits"
+							$place.find(".fb-other-visits").fadeIn("slow");
+
+							// Fade in this visit.
+							$this_visit.fadeIn("slow");
+						}
+					}
+				} else if (data.place) {
+					console.log("Skipping place " + data.place.name + " (place ID=" + data.place.id + ")");
+					if (data.place.location && data.place.location.city) {
+						console.log("- Has a location and city");
+					} else if (data.place.location && !data.place.location.city) {
+						console.log("- Has a location and no city");
+					}
+
+					if (data.place.phone) {
+						console.log("- Has a phone number");
 					} else {
-						this_visit_html += " by yourself";
+						console.log("- Does not have a phone number");
 					}
-
-					// Add closing </li>.
-					this_visit_html += "</li>";
-
-					// Don't add the visit to the list if it happened on the same day.
-					if (existing_date !== data.created_time.split("T")[0]) {
-						// Create jQuery object of this visit HTML and initially hide it.
-						var $this_visit = $(this_visit_html);
-						$this_visit.hide();
-
-						// Now drop that in the DOM
-						$place.find(".fb-other-visits ul").append($this_visit);
-
-						// Show "Other visits"
-						$place.find(".fb-other-visits").fadeIn("slow");
-
-						// Fade in this visit.
-						$this_visit.fadeIn("slow");
-					}
-				}
-			} else if (data.place) {
-				console.log("Skipping place " + data.place.name + " (place ID=" + data.place.id + ")");
-				if (data.place.location && data.place.location.city) {
-					console.log("- Has a location and city");
-				} else if (data.place.location && !data.place.location.city) {
-					console.log("- Has a location and no city");
-				}
-
-				if (data.place.phone) {
-					console.log("- Has a phone number");
 				} else {
-					console.log("- Does not have a phone number");
+					console.log("Skipping ID " + data.id + " because there is no attached place");
 				}
-			} else {
-				console.log("Skipping ID " + data.id + " because there is no attached place");
-			}
 
-			// Analytics ahoy!
+				// Analytics ahoy!
 
-			// Keep track of places.
-			if (data.place) {
-				add_analytics_row(Analytics.checkins, data.place.name, new Date(Date.parse(data.created_time)));
+				// Keep track of places.
+				if (data.place) {
+					add_analytics_row(Analytics.checkins, data.place.name, new Date(Date.parse(data.created_time)));
 
-				// Keep track of checkin habits
-				increment_checkin_habits_counter(new Date(Date.parse(data.created_time)), data.place.name, data.place.id);
-			}
+					// Keep track of checkin habits
+					increment_checkin_habits_counter(new Date(Date.parse(data.created_time)), data.place.name, data.place.id);
+				}
 
-			// Keep track of cities.
-			if (data.place && data.place.location && data.place.location.city) {
-				add_analytics_row(Analytics.cities, data.place.location.city + ", " + data.place.location.state, new Date(Date.parse(data.created_time)));
-			}
+				// Keep track of cities.
+				if (data.place && data.place.location && data.place.location.city) {
+					add_analytics_row(Analytics.cities, data.place.location.city + ", " + data.place.location.state, new Date(Date.parse(data.created_time)));
+				}
 
-			// Keep track of friends.
-			for (var t = 0; t < tags.length; t++) {
-				// Don't add yourself.
-				if (tags[t].id != fb_current_user_id) {
-					add_analytics_row(Analytics.friends, tags[t].name, new Date(Date.parse(data.created_time)));
+				// Keep track of friends.
+				for (var t = 0; t < tags.length; t++) {
+					// Don't add yourself.
+					if (tags[t].id != fb_current_user_id) {
+						add_analytics_row(Analytics.friends, tags[t].name, new Date(Date.parse(data.created_time)));
+					}
 				}
 			}
 		}

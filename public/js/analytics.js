@@ -60,6 +60,18 @@ $(document).ready(function () {
 				);
 			});
 
+			// Center map on first city.
+			google_geocoder.geocode({ address: cities[0].getValue(parseInt(cities[1][0]), 0) }, function (results, status) {
+				// This makes the map resize to work inside Bootstrap.
+				google.maps.event.trigger(google_map, 'resize');
+
+				if (status == google.maps.GeocoderStatus.OK) {
+					google_map.setCenter(results[0].geometry.location);
+				} else {
+					console.error("Geocode was not successful for the following reason: " + status);
+				}
+			});
+
 			// Show checkin habits.
 			update_checkin_habits_html_table(Analytics.checkin_habits);
 
