@@ -1,0 +1,90 @@
+<% if session[:access_token] %>
+	<script type="text/javascript">
+	// <![CDATA[
+		var fb_current_user_id = <%= session[:facebook_uid].to_json %>;
+	// ]]>
+	</script>
+
+	<div id="result_info" class="alert alert-info">
+		<button type="button" class="close" data-dismiss="alert">&times;</button>
+		<strong>Sweet!</strong> We found <span>0 places</span> you've been to!
+	</div>
+
+	<div id="analytics">
+		<div class="row">
+			<div id="analytics-checkins" class="span4">
+				<div class="data">
+					<h3>Most Checkins</h3>
+					<ul></ul>
+				</div>
+				<div class="filters">
+					<ul class="inline">
+						<li><a href="#" data-filter="month">&lt; 1m</a></li>
+						<li><a href="#" data-filter="quarter">&lt; 3m</a></li>
+						<li><a href="#" data-filter="half">&lt; 6m</a></li>
+						<li><a href="#" data-filter="year">&lt; 1y</a></li>
+						<li><a href="#" data-filter="all" class="active">All</a></li>
+					</ul>
+				</div>
+			</div>
+			<div id="analytics-friends" class="span4">
+				<div class="data">
+					<h3>Friends</h3>
+					<ul></ul>
+				</div>
+				<div class="filters">
+					<ul class="inline">
+						<li><a href="#" data-filter="month">&lt; 1m</a></li>
+						<li><a href="#" data-filter="quarter">&lt; 3m</a></li>
+						<li><a href="#" data-filter="half">&lt; 6m</a></li>
+						<li><a href="#" data-filter="year">&lt; 1y</a></li>
+						<li><a href="#" data-filter="all" class="active">All</a></li>
+					</ul>
+				</div>
+		  	</div>
+			<div id="analytics-cities" class="span4">
+				<div class="data">
+					<h3>Cities</h3>
+					<ul></ul>
+				</div>
+				<div class="filters">
+					<ul class="inline">
+						<li><a href="#" data-filter="month">&lt; 1m</a></li>
+						<li><a href="#" data-filter="quarter">&lt; 3m</a></li>
+						<li><a href="#" data-filter="half">&lt; 6m</a></li>
+						<li><a href="#" data-filter="year">&lt; 1y</a></li>
+						<li><a href="#" data-filter="all" class="active">All</a></li>
+					</ul>
+				</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="span4">
+				<table id="analytics-checkin-habits" class="table table-striped table-condensed">
+					<thead>
+					</thead>
+					<tbody>
+					</tbody>
+				</table>
+			</div>
+			<div class="span8">
+				<div id="google_map"></div>
+			</div>
+		</div>
+
+		<hr />
+	</div>
+
+	<ul id="places" class="media-list"></ul>
+<% else %>
+	<div id="welcome" class="hero-unit">
+		<h1>Facebook Experiment</h1>
+		<p>Let us squeeze some insights out of the places you've been lately by logging into Facebook.</p>
+		<p>
+			We ask for permission to read your status messages, photos, and checkins, including when your friends have tagged you at places.
+			We only read the location data and don't do anything with the text.
+		</p>
+
+		<p><a href="/auth/singly?service=facebook&amp;scope=user_checkins,friends_checkins,user_status,friends_status,user_photos,friends_photos" class="btn btn-primary">Let's do it!</a></p>
+	</div>
+<% end %>
