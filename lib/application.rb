@@ -20,6 +20,20 @@ module MacroDeck
 			redirect "/index.html"
 		end
 
+		get "/facebook/?" do
+			endpoint = params.delete(:endpoint)
+			fields = params.delete(:fields)
+
+			if endpoint
+				content_type :json
+				HTTParty.get("#{SINGLY_API_BASE}/proxy/facebook/#{endpoint}", {
+					:query => { :access_token => session[:access_token], :fields => fields }
+				}).parsed_response
+			else
+				raise "Endpoint not specified"
+			end
+		end
+
 		get "/auth/singly/callback" do
 			auth = request.env["omniauth.auth"]
 			session[:access_token] = auth.credentials.token
