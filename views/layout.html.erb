@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>RestlessNapkin Facebook Experiment</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Le styles -->
+    <link href="css/bootstrap.css" rel="stylesheet" />
+    <link href="css/application.css" rel="stylesheet" />
+    <style>
+      body {
+        padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+      }
+    </style>
+    <link href="css/bootstrap-responsive.css" rel="stylesheet" />
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+    <div id="fb-root"></div>
+    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="brand" href="http://www.restlessnapkin.com/">RestlessNapkin</a>
+          <div class="nav-collapse collapse">
+            <ul class="nav">
+              <li class="active"><a href="#">Facebook Experiment</a></li>
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <%= yield %>
+    </div>
+
+    <!-- this is the template object we will be filling in with place info -->
+    <div id="place_template">
+      <li class="media">
+        <div class="media-body">
+          <div class="pull-left">
+            <img src="http://placehold.it/150x150" alt="Place thumbnail" class="img-polaroid fb-picture" />
+          </div>
+          <h4 class="media-heading"><span class="fn org">Place Name</span> <small>Last visited <time>forever ago</time> <span class="fb-visit-with-list">by yourself</span>.</small></h4>
+          <div class="pull-right fb-visit-counts">
+            <div class="fb-visit-count">1 visit</div>
+          </div>
+          <div class="adr"><span class="street-address">123 Any St</span> <span class="locality">Any City</span> <span class="region">OK</span> <span class="postal-code">12345</span></div>
+          <div class="tel">(918) 835-8039</div>
+          <blockquote class="fb-about"></blockquote>
+          <div class="fb-other-visits">
+            <p style="margin-top: 3px;">Other visits:</p>
+            <ul></ul>
+          </div>
+        </div>
+      </li>
+    </div>
+
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="//code.jquery.com/jquery-latest.js"></script>
+    <script src="https://www.google.com/jsapi?key=AIzaSyCxh2fB3cLbNc5XvAWSOO_0YFuOxFoTwFg"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/jquery.mustache.js"></script>
+    <script src="js/iso8601.min.js"></script>
+    <script src="js/jquery.timeago.js"></script>
+    <script src="js/init.js"></script>
+    <script src="js/application.js"></script>
+    <script src="js/analytics.js"></script>
+    <script src="js/gmaps_themes/fresh.js"></script>
+    <script src="js/gmaps_themes/night.js"></script>
+  </body>
+</html>
