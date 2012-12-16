@@ -1,13 +1,13 @@
 --- 
 applications: 
   .: 
-    mem: 128M
+    mem: 512M
     framework: 
       info: 
-        mem: 128M
-        description: PHP Application
+        description: Rack Application
         exec: 
-      name: php
+        mem: 512M
+      name: rack
     url: fb.restlessnapkin.com
     name: restnap-facebook-experiment
     instances: 1
