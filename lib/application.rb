@@ -9,9 +9,15 @@ module MacroDeck
 		SINGLY_SECRET = ""
 
 		enable :sessions
+		set :public_folder, File.join(File.expand_path(File.dirname(__FILE__)), "..", "public")
+		set :views, File.join(File.expand_path(File.dirname(__FILE__)), "..", "views")
 
 		use OmniAuth::Builder do
 		  provider :singly, SINGLY_ID, SINGLY_SECRET
+		end
+
+		get "/" do
+			redirect "/index.html"
 		end
 
 		get "/auth/singly/callback" do
