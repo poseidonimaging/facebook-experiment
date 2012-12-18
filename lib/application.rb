@@ -13,7 +13,7 @@ module MacroDeck
 		AWS_ACCESS_KEY = "AKIAINPARSP7PEW7I6DA"
 		AWS_SECRET_KEY = "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"
 
-		SQS_DATA_URL   = "https://sqs.us-east-1.amazonaws.com/766921168018/RestNap_OpenGraph_DataWithLocations"
+		SQS_DATA_WITH_LOCATIONS_URL = "https://sqs.us-east-1.amazonaws.com/766921168018/RestNap_OpenGraph_DataWithLocations"
 		SQS_PLACES_URL = "https://sqs.us-east-1.amazonaws.com/766921168018/RestNap_OpenGraph_Places"
 
 		enable :sessions
@@ -58,7 +58,7 @@ module MacroDeck
 				if !parsed["data"].nil? && parsed["data"].length > 0
 					# Get a reference to the SQS queue
 					places_queue = AWS::SQS.new(:access_key_id => AWS_ACCESS_KEY, :secret_access_key => AWS_SECRET_KEY).queues[SQS_PLACES_URL]
-					data_queue = AWS::SQS.new(:access_key_id => AWS_ACCESS_KEY, :secret_access_key => AWS_SECRET_KEY).queues[SQS_DATA_URL]
+					data_loc_queue = AWS::SQS.new(:access_key_id => AWS_ACCESS_KEY, :secret_access_key => AWS_SECRET_KEY).queues[SQS_DATA_WITH_LOCATIONS_URL]
 
 					# Loop over all the pieces of data.
 					parsed["data"].each do |item|
@@ -70,10 +70,10 @@ module MacroDeck
 							item["place"] = item["place"]["id"]
 
 							# Send the entire item to SQS.
-							data_queue.send_message(item.to_json)
-						else
-							# Send the entire item to SQS.
-							data_queue.send_message(item.to_json)
+							data_loc_queue.send_message(item.to_json)
+						elsif endpoint.include?("/locations")
+							# Send the entire item to SQS, but only if we are pulling something with a location.
+							data_loc_queue.send_message(item.to_json)
 						end
 					end
 				end
