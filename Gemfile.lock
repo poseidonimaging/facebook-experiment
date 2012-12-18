@@ -1,7 +1,13 @@
 GEM
   remote: http://rubygems.org/
   specs:
+    aws-sdk (1.7.1)
+      httparty (~> 0.7)
+      json (~> 1.4)
+      nokogiri (>= 1.4.4)
+      uuidtools (~> 2.1)
     daemons (1.1.9)
+    eventmachine (1.0.0)
     eventmachine (1.0.0-x86-mingw32)
     faraday (0.8.4)
       multipart-post (~> 1.1)
@@ -16,6 +22,8 @@ GEM
     multi_json (1.5.0)
     multi_xml (0.5.1)
     multipart-post (1.1.5)
+    nokogiri (1.5.5)
+    nokogiri (1.5.5-x86-mingw32)
     oauth2 (0.8.0)
       faraday (~> 0.8)
       httpauth (~> 0.1)
@@ -43,11 +51,14 @@ GEM
       eventmachine (>= 0.12.6)
       rack (>= 1.0.0)
     tilt (1.3.3)
+    uuidtools (2.1.3)
 
 PLATFORMS
+  ruby
   x86-mingw32
 
 DEPENDENCIES
+  aws-sdk
   httparty
   json
   omniauth-singly
