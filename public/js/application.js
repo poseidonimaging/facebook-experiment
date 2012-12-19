@@ -46,7 +46,7 @@ $(document).ready(function () {
 			});
 
 			// Get crackin' on places!
-			get_locations_from_url("me/locations?fields=place.fields(id,name,location,about,phone,picture,cover),created_time,tags,from");
+			get_locations_from_url("me/locations?fields=place.fields(id,name,location,about,phone,picture,cover),created_time,tags,from,type");
 		});
 	}
 
