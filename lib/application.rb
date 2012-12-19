@@ -15,6 +15,7 @@ module MacroDeck
 
 		SQS_DATA_WITH_LOCATIONS_URL = "https://sqs.us-east-1.amazonaws.com/766921168018/RestNap_OpenGraph_DataWithLocations"
 		SQS_PLACES_URL = "https://sqs.us-east-1.amazonaws.com/766921168018/RestNap_OpenGraph_Places"
+		SQS_USERS_URL = "https://sqs.us-east-1.amazonaws.com/766921168018/RestNap_OpenGraph_Users"
 
 		enable :sessions
 		set :public_folder, File.join(File.expand_path(File.dirname(__FILE__)), "..", "public")
@@ -89,10 +90,21 @@ module MacroDeck
 			auth = request.env["omniauth.auth"]
 			session[:access_token] = auth.credentials.token
 
-			# Get your Facebook ID.
-			session[:facebook_uid] = HTTParty.get("#{SINGLY_API_BASE}/proxy/facebook/me", {
-				:query => { :access_token => session[:access_token], :fields => "id" } 
-			}).parsed_response["id"]
+			# Get your Singly combined profile
+			resp = HTTParty.get("#{SINGLY_API_BASE}/profiles", {
+				:query => { :access_token => session[:access_token], :verify => true } 
+			})
+			parsed = resp.parsed_response
+
+			# Set your FB ID if we have it
+			# FIXME: Support multiple linked FB profiles.
+			if parsed["facebook"] && parsed["facebook"].length > 0 && parsed["facebook"][0]["id"]
+				session[:facebook_uid] = parsed["facebook"][0]["id"]
+			end
+
+			# Got user info, add the singly token and send it off.
+			users_queue = AWS::SQS.new(:access_key_id => AWS_ACCESS_KEY, :secret_access_key => AWS_SECRET_KEY).queues[SQS_USERS_URL]
+			users_queue.send_message(resp.body)
 
 			redirect "/"
 		end
