@@ -22,5 +22,27 @@ namespace :restnap do
 				puts parsed["name"] if parsed["name"]
 			end
 		end
+
+		desc "Processes queued data with locations"
+		task :data_with_locations do
+			data_loc_queue = AWS::SQS.new(:access_key_id => AWS_ACCESS_KEY, :secret_access_key => AWS_SECRET_KEY).queues[SQS_DATA_WITH_LOCATIONS_URL]
+
+			data_loc_queue.poll(:idle_timeout => 10) do |msg|
+				parsed = JSON.parse(msg.body)
+
+				puts parsed["id"] if parsed["id"]
+			end
+		end
+
+		desc "Processes queued users"
+		task :users do
+			users_queue = AWS::SQS.new(:access_key_id => AWS_ACCESS_KEY, :secret_access_key => AWS_SECRET_KEY).queues[SQS_USERS_URL]
+
+			users_queue.poll(:idle_timeout => 10) do |msg|
+				parsed = JSON.parse(msg.body)
+
+				puts parsed["id"] if parsed["id"]
+			end
+		end
 	end
 end
