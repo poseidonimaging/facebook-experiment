@@ -1,0 +1,13 @@
+---
+development:
+  db_url: https://macrodeck-development:C0snCBjFS4sRAW1ImiFLPCb51bOxK4Z1A@couchdb.poseidonimaging.com:6984/macrodeck-development
+  layout: layout.html
+  view_dir: views
+  path_prefix: /admin/
+  turk_path_prefix: /turk/
+  turk_sandbox: true
+  turk_reward: 0.25
+  turk_hit_type_id: "2TC011K274J739NQ36ZN76UXFECEC7"
+  aws_access_key: "AKIAJTYBIJGWEJZNELHA"
+  aws_secret_access_key: "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"
+  base_url: "http://fb.restlessnapkin.com/"
