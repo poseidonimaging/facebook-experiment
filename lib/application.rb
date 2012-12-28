@@ -1,9 +1,3 @@
-require "json"
-require "sinatra"
-require "omniauth-singly"
-require "httparty"
-require "aws-sdk"
-
 module MacroDeck
 	class SinglyController < Sinatra::Base
 		SINGLY_API_BASE = "https://api.singly.com"
