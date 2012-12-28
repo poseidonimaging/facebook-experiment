@@ -3,6 +3,7 @@ source 'http://gems.github.com'
 
 # App support
 gem "sinatra"
+gem "system_timer"
 gem "omniauth-singly"
 gem "httparty"
 gem "json"
