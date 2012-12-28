@@ -1,4 +1,11 @@
 GIT
+  remote: git://github.com/poseidonimaging/macrodeck-config.git
+  revision: 46aa4e56324cee654d9b88af05a158e3e8479085
+  specs:
+    macrodeck-config (0.0.1)
+      sinatra
+
+GIT
   remote: git://github.com/ziggythehamster/macrodeck-platform.git
   revision: 5cb3a4c645790bba9741def6400cab54adf2165b
   specs:
@@ -23,16 +30,16 @@ GEM
     activesupport (3.2.9)
       i18n (~> 0.6)
       multi_json (~> 1.0)
-    aws-sdk (1.7.1)
+    aws-sdk (1.8.0)
       httparty (~> 0.7)
       json (~> 1.4)
       nokogiri (>= 1.4.4)
       uuidtools (~> 2.1)
     builder (3.1.4)
-    couchrest (1.0.1)
-      json (>= 1.4.6)
-      mime-types (>= 1.15)
-      rest-client (>= 1.5.1)
+    couchrest (1.0.2)
+      json (~> 1.5.1)
+      mime-types (~> 1.15)
+      rest-client (~> 1.6.1)
     couchrest_extended_document (1.0.0)
       activesupport (>= 2.3.0)
       builder (>= 2.1.2)
@@ -51,15 +58,15 @@ GEM
     i18n (0.6.1)
     jnunemaker-validatable (1.8.4)
       activesupport (>= 2.3.4)
-    json (1.7.5)
+    json (1.5.4)
     jwt (0.1.5)
       multi_json (>= 1.0)
     mime-types (1.19)
     multi_json (1.5.0)
     multi_xml (0.5.1)
     multipart-post (1.1.5)
-    nokogiri (1.5.5)
-    nokogiri (1.5.5-x86-mingw32)
+    nokogiri (1.5.6)
+    nokogiri (1.5.6-x86-mingw32)
     oauth2 (0.8.0)
       faraday (~> 0.8)
       httpauth (~> 0.1)
@@ -81,9 +88,9 @@ GEM
     rest-client (1.6.7)
       mime-types (>= 1.16)
     sinatra (1.3.3)
-      rack (~> 1.3, >= 1.3.6)
+      rack (>= 1.3.6, ~> 1.3)
       rack-protection (~> 1.2)
-      tilt (~> 1.3, >= 1.3.3)
+      tilt (>= 1.3.3, ~> 1.3)
     thin (1.5.0)
       daemons (>= 1.0.9)
       eventmachine (>= 0.12.6)
@@ -99,6 +106,7 @@ DEPENDENCIES
   aws-sdk
   httparty
   json
+  macrodeck-config!
   macrodeck-platform!
   omniauth-singly
   sinatra
