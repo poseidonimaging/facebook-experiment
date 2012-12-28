@@ -23,7 +23,7 @@ cfg = MacroDeck::Config.new(File.join(File.dirname(__FILE__), "config", "macrode
 # Start the MacroDeck platform.
 puts ">>> Starting MacroDeck Platform on #{cfg.db_url}"
 MacroDeck::Platform.start!(cfg.db_url)
-MacroDeck::PlatformDataObjects.define!
+#MacroDeck::PlatformDataObjects.define!
 
 puts ">>> MacroDeck Platform started."
 
