@@ -1,7 +1,14 @@
 source :rubygems
+source 'http://gems.github.com'
+
+# App support
 gem "sinatra"
 gem "omniauth-singly"
 gem "httparty"
 gem "json"
 gem "thin"
 gem "aws-sdk"
+
+# MacroDeck Platform.
+gem "validatable-validates_list_items_in_list", :git => "git://github.com/ziggythehamster/validatable-validates_list_items_in_list.git"
+gem "macrodeck-platform", :git => "git://github.com/ziggythehamster/macrodeck-platform.git"
