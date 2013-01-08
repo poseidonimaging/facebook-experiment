@@ -33,7 +33,7 @@ end
 namespace :restnap do
 	namespace :process do
 		desc "Processes queued places"
-		task :places do
+		task :places => "macrodeck:boot_platform" do
 			places_queue = AWS::SQS.new(:access_key_id => AWS_ACCESS_KEY, :secret_access_key => AWS_SECRET_KEY).queues[SQS_PLACES_URL]
 
 			puts ">>> Polling for places..."
@@ -64,7 +64,7 @@ namespace :restnap do
 							countries = [country]
 						end
 
-						# Check if we can get the state.
+						# Check if we can get the state/city
 						if countries.length == 1
 							if location["state"]
 								# FIXME: This needs to filter by the country as well in case there are abbreviation overlaps.
@@ -74,7 +74,12 @@ namespace :restnap do
 									puts "-- Region with abbreviation #{location["state"]} needs to be created"
 								elsif states.length == 1
 									# We have a state, now look for a city.
-									
+									cities = ::Locality.view("by_title", :key => location["city"], :reduce => false)
+									cities.each do |city|
+										if city.path == [countries[0].id, states[0].id, city.id]
+											puts "-- Correct city found! ID=#{city.id} Title=#{city.title}"
+										end
+									end
 								end
 							else
 								puts "Place #{parsed["id"]} does not have a state."
