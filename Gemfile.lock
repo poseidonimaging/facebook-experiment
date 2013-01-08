@@ -6,14 +6,6 @@ GIT
       sinatra
 
 GIT
-  remote: git://github.com/poseidonimaging/whenever.git
-  revision: a3b0dc568a457c55c22546357b7cf3f1ae9babbc
-  specs:
-    whenever (0.8.1)
-      activesupport (>= 2.3.4)
-      chronic (>= 0.6.3)
-
-GIT
   remote: git://github.com/ziggythehamster/macrodeck-platform.git
   revision: 660b0327a92efa1f94ce2d653217d225c4905214
   specs:
@@ -35,7 +27,7 @@ GEM
   remote: http://rubygems.org/
   remote: http://gems.github.com/
   specs:
-    activesupport (3.2.9)
+    activesupport (3.2.10)
       i18n (~> 0.6)
       multi_json (~> 1.0)
     aws-sdk (1.8.0)
@@ -44,7 +36,8 @@ GEM
       nokogiri (>= 1.4.4)
       uuidtools (~> 2.1)
     builder (3.1.4)
-    chronic (0.9.0)
+    clockwork (0.4.1)
+      tzinfo
     couchrest (1.0.2)
       json (~> 1.5.1)
       mime-types (~> 1.15)
@@ -107,6 +100,7 @@ GEM
       eventmachine (>= 0.12.6)
       rack (>= 1.0.0)
     tilt (1.3.3)
+    tzinfo (0.3.35)
     uuidtools (2.1.3)
 
 PLATFORMS
@@ -115,6 +109,7 @@ PLATFORMS
 
 DEPENDENCIES
   aws-sdk
+  clockwork
   httparty
   json
   macrodeck-config!
@@ -126,4 +121,3 @@ DEPENDENCIES
   thin
   uuidtools
   validatable-validates_list_items_in_list!
-  whenever!
