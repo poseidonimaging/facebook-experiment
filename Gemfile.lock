@@ -6,6 +6,14 @@ GIT
       sinatra
 
 GIT
+  remote: git://github.com/poseidonimaging/whenever.git
+  revision: a3b0dc568a457c55c22546357b7cf3f1ae9babbc
+  specs:
+    whenever (0.8.1)
+      activesupport (>= 2.3.4)
+      chronic (>= 0.6.3)
+
+GIT
   remote: git://github.com/ziggythehamster/macrodeck-platform.git
   revision: 660b0327a92efa1f94ce2d653217d225c4905214
   specs:
@@ -100,9 +108,6 @@ GEM
       rack (>= 1.0.0)
     tilt (1.3.3)
     uuidtools (2.1.3)
-    whenever (0.8.1)
-      activesupport (>= 2.3.4)
-      chronic (>= 0.6.3)
 
 PLATFORMS
   ruby
@@ -121,4 +126,4 @@ DEPENDENCIES
   thin
   uuidtools
   validatable-validates_list_items_in_list!
-  whenever
+  whenever!
