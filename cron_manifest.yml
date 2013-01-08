@@ -1,0 +1,16 @@
+--- 
+applications: 
+  .: 
+    name: restnap-facebook-experiment-cron
+    mem: 128M
+    command: "bundle install && RAILS_ENV=production RACK_ENV=production bundle exec clockwork config/clock.rb"
+    instances: 1
+    infra: aws
+    runtime: ruby18
+    framework: 
+      name: standalone
+      info: 
+        mem: 64M
+        description: Standalone Application
+        exec: 
+    url: 
