@@ -36,11 +36,54 @@ namespace :restnap do
 		task :places do
 			places_queue = AWS::SQS.new(:access_key_id => AWS_ACCESS_KEY, :secret_access_key => AWS_SECRET_KEY).queues[SQS_PLACES_URL]
 
+			puts ">>> Polling for places..."
+
 			# Get each message
 			places_queue.poll(:idle_timeout => 10) do |msg|
 				parsed = JSON.parse(msg.body)
 
-				puts parsed["name"] if parsed["name"]
+				# Get the location
+				location = parsed["location"] if parsed["location"]
+
+				# Parse the location.
+				if location
+					if location["country"]
+						countries = ::Country.view("by_title", :key => location["country"], :reduce => false)
+
+						# Create the country if needed.
+						if countries.length == 0
+							puts "--- Creating new country #{location["country"]}..."
+							country = Country.new
+							country.id = UUIDTools::UUID.random_create.to_s
+							country.path = [country.id]
+							country.title = location["country"]
+							country.created_by = "_system/RestNap/FacebookExperiment"
+							country.updated_by = "_system/RestNap/FacebookExperiment"
+							country.owned_by = "_system"
+							country.save
+							countries = [country]
+						end
+
+						# Check if we can get the state.
+						if countries.length == 1
+							if location["state"]
+								# FIXME: This needs to filter by the country as well in case there are abbreviation overlaps.
+								states = ::Region.view("by_abbreviation", :key => location["state"], :reduce => false)
+
+								if states.length == 0
+									puts "-- Region with abbreviation #{location["state"]} needs to be created"
+								elsif states.length == 1
+									# We have a state, now look for a city.
+									
+								end
+							else
+								puts "Place #{parsed["id"]} does not have a state."
+							end
+						end
+					else
+						puts "Place #{parsed["id"]} does not have a country."
+					end
+				end
 			end
 		end
 
