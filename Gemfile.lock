@@ -7,7 +7,7 @@ GIT
 
 GIT
   remote: git://github.com/ziggythehamster/macrodeck-platform.git
-  revision: 660b0327a92efa1f94ce2d653217d225c4905214
+  revision: 1068cb45a3a86e684e7db658fb22bb10be2b8270
   specs:
     macrodeck-platform (1.0.0)
       couchrest (~> 1.0.1)
@@ -27,7 +27,7 @@ GEM
   remote: http://rubygems.org/
   remote: http://gems.github.com/
   specs:
-    activesupport (3.2.10)
+    activesupport (3.2.11)
       i18n (~> 0.6)
       multi_json (~> 1.0)
     aws-sdk (1.8.0)
