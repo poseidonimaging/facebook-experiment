@@ -42,11 +42,13 @@ namespace :restnap do
 			places_queue.poll(:idle_timeout => 10) do |msg|
 				parsed = JSON.parse(msg.body)
 
+				puts "--- Parsing FB place ID #{parsed["id"]}"
+
 				# Get the location
 				location = parsed["location"] if parsed["location"]
 
 				# Parse the location.
-				if location
+				if location && location["street"] && parsed["name"]
 					if location["country"]
 						countries = ::Country.view("by_title", :key => location["country"], :reduce => false)
 
@@ -71,23 +73,64 @@ namespace :restnap do
 								states = ::Region.view("by_abbreviation", :key => location["state"], :reduce => false)
 
 								if states.length == 0
-									puts "-- Region with abbreviation #{location["state"]} needs to be created"
+									puts "--- Region with abbreviation #{location["state"]} needs to be created"
 								elsif states.length == 1
 									# We have a state, now look for a city.
 									cities = ::Locality.view("by_title", :key => location["city"], :reduce => false)
 									cities.each do |city|
 										if city.path == [countries[0].id, states[0].id, city.id]
-											puts "-- Correct city found! ID=#{city.id} Title=#{city.title}"
+											puts "    Correct city found! ID=#{city.id} Title=#{city.title}"
+
+											# TODO: Make this not be stupid
+											places = ::Place.view("by_title", :key => parsed["name"], :reduce => false)
+											places.each do |place|
+												if place.path.length >= 3
+													# Check if the place is in the city's path
+													if place.path[0] == countries[0].id && place.path[1] == states[0].id && place.path[2] == city.id
+														puts "    Place ID=#{place.id} has correct path, checking address"
+														# It is, check the address.
+														if place.address == location["street"] || place.postal_code == location["zip"]
+															puts "    Correct place found! ID=#{place.id} Address=#{place.address} PostalCode=#{place.postal_code}"
+															place.address = location["street"] unless location["street"].blank?
+															place.postal_code = location["zip"] unless location["zip"].blank?
+															place.phone_number = parsed["phone"] unless parsed["phone"].blank?
+															place.url = parsed["website"] unless parsed["website"].blank?
+
+															if location["latitude"] && location["longitude"]
+																place.geo = [location["latitude"], location["longitude"]]
+															end
+
+															begin
+																place.save
+																puts "    Saved!"
+																break
+															rescue
+																puts "!!! Error saving :("
+															end
+														end
+													else
+														puts "    FB address #{location["street"]} #{location["zip"]} does not match our address of #{place.address} #{place.postal_code}, trying another..."
+													end
+												else
+													puts "    Place path isn't >= 3 (it's #{place.path.length})"
+												end
+											end
+
+											puts "    Done processing... if it didn't save, we couldn't match #{parsed["name"]}"
+
+											break
 										end
 									end
 								end
 							else
-								puts "Place #{parsed["id"]} does not have a state."
+								puts "!!! Place #{parsed["id"]} does not have a state."
 							end
 						end
 					else
-						puts "Place #{parsed["id"]} does not have a country."
+						puts "!!! Place #{parsed["id"]} does not have a country."
 					end
+				else
+					puts "!!! Place #{parsed["id"]} has insufficient information to update/create a place."
 				end
 			end
 		end
