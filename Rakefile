@@ -2,6 +2,7 @@ require "bundler"
 require "aws-sdk"
 require "json"
 require "uuidtools"
+require "rest_client"
 
 AWS_ACCESS_KEY = "AKIAINPARSP7PEW7I6DA"
 AWS_SECRET_KEY = "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"
@@ -9,6 +10,75 @@ AWS_SECRET_KEY = "WTA1Vz7kEvoFUyzzN+CiiWrC7oEQWsZiGbqF5+DT"
 SQS_DATA_WITH_LOCATIONS_URL = "https://sqs.us-east-1.amazonaws.com/766921168018/RestNap_OpenGraph_DataWithLocations"
 SQS_PLACES_URL = "https://sqs.us-east-1.amazonaws.com/766921168018/RestNap_OpenGraph_Places"
 SQS_USERS_URL = "https://sqs.us-east-1.amazonaws.com/766921168018/RestNap_OpenGraph_Users"
+
+GMAPS_GEOCODE_BASE = "http://maps.google.com/maps/api/geocode/json"
+
+# Takes an address and geocodes it with Google.
+def geocode_address(street, city, state, country)
+	address = "#{street}, #{city}, #{state}, #{country}"
+
+	puts "    Attempting to geocode: #{address}"
+
+	resp = RestClient.get(GMAPS_GEOCODE_BASE, {
+		:params => {
+			:address => address,
+			:sensor => false,
+			:components => "locality:#{city}|administrative_area:#{state}"
+		},
+		:content_type => :json,
+		:accept => :json
+	})
+
+	parsed = JSON.parse(resp)
+
+	if parsed["results"] && parsed["results"].length == 1
+		info = {
+			"formatted_address" => parsed["results"][0]["formatted_address"]
+		}
+
+		parsed["results"][0]["address_components"].each do |component|
+			if component["types"].include?("street_number")
+				info["street_number"] = component["long_name"]
+			end
+
+			if component["types"].include?("route")
+				info["street"] = component["short_name"]
+			end
+
+			if component["types"].include?("neighborhood")
+				info["neighborhood"] = component["long_name"]
+			end
+
+			if component["types"].include?("locality")
+				info["locality"] = component["long_name"]
+			end
+
+			if component["types"].include?("administrative_area_level_2") # US county
+				info["county"] = component["long_name"]
+			end
+
+			if component["types"].include?("administrative_area_level_1") # US state
+				info["region"] = component["long_name"]
+				info["region_abbreviation"] = component["short_name"]
+			end
+
+			if component["types"].include?("country")
+				info["country"] = component["long_name"]
+				info["country_abbreviation"] = component["short_name"]
+			end
+
+			if component["types"].include?("postal_code")
+				info["postal_code"] = component["long_name"]
+			end
+		end
+
+		info["address"] = "#{info["street_number"]} #{info["street"]}".strip
+
+		return info
+	end
+
+	return nil
+end
 
 namespace :macrodeck do
 	desc "Boots the MacroDeck platform"
