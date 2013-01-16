@@ -118,7 +118,7 @@ namespace :restnap do
 				location = parsed["location"] if parsed["location"]
 
 				# Parse the location.
-				if location && location["street"] && parsed["name"]
+				if location && location["street"] && location["street"].length > 0 && location["city"] && location["city"].length > 0 && parsed["name"] && parsed["name"].length > 0
 					if location["country"]
 						countries = ::Country.view("by_title", :key => location["country"], :reduce => false)
 
