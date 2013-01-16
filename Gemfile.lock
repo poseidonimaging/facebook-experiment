@@ -116,6 +116,7 @@ DEPENDENCIES
   macrodeck-platform!
   omniauth-singly
   rake
+  rest-client
   sinatra
   system_timer
   thin
