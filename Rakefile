@@ -141,11 +141,18 @@ namespace :restnap do
 							countries = [country]
 						end
 
-						# Check if we can get the state/city
 						if countries.length == 1
-							if location["state"]
-								# FIXME: This needs to filter by the country as well in case there are abbreviation overlaps.
-								states = ::Region.view("by_abbreviation", :key => location["state"], :reduce => false)
+							# Update country info.
+							countries[0].title = geocoded["country"]
+							countries[0].abbreviation = geocoded["country_abbreviation"]
+							countries[0].updated_by = "_system/RestNap/FacebookExperiment"
+							countries[0].save
+
+							# Check if we can get the state/city
+							if geocoded["region"]
+								states = ::Region.view("by_path", :startkey => [countries[0].id], :endkey => [countries[0].id, {}], :reduce => false).select do |obj|
+									obj.abbreviation == geocoded["region_abbreviation"]
+								end
 
 								if states.length == 0
 									puts "--- Region with abbreviation #{location["state"]} needs to be created"
