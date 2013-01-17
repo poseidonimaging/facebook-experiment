@@ -155,8 +155,18 @@ namespace :restnap do
 								end
 
 								if states.length == 0
-									puts "--- Region with abbreviation #{location["state"]} needs to be created"
-								elsif states.length == 1
+									puts "--- Creating new state #{geocoded["region_abbreviation"]}"
+									state = Region.new
+									state.id = UUIDTools::UUID.random_create.to_s
+									state.path = [countries[0].id, state.id]
+									state.title = geocoded["region"]
+									state.abbreviation = geocoded["region_abbreviation"]
+									state.created_by = "_system/RestNap/FacebookExperiment"
+									state.updated_by = "_system/RestNap/FacebookExperiment"
+									state.owned_by = "_system"
+									state.save
+									states = [state]
+								end
 									# We have a state, now look for a city.
 									cities = ::Locality.view("by_title", :key => location["city"], :reduce => false)
 									cities.each do |city|
