@@ -31,7 +31,9 @@ def geocode_address(street, city, state, country)
 
 	parsed = JSON.parse(resp)
 
-	if parsed["results"] && parsed["results"].length == 1
+	if parsed["results"] && parsed["results"].length >= 1
+		puts "    Geocoded successfully."
+
 		info = {
 			"formatted_address" => parsed["results"][0]["formatted_address"]
 		}
