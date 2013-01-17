@@ -142,6 +142,8 @@ namespace :restnap do
 						end
 
 						if countries.length == 1
+							puts "    Using country #{countries[0].title}"
+
 							# Update country info.
 							countries[0].title = geocoded["country"]
 							countries[0].abbreviation = geocoded["country_abbreviation"]
@@ -151,7 +153,7 @@ namespace :restnap do
 							# Check if we can get the state/city
 							if geocoded["region"]
 								states = ::Region.view("by_path", :startkey => [countries[0].id], :endkey => [countries[0].id, {}], :reduce => false).select do |obj|
-									obj.abbreviation == geocoded["region_abbreviation"]
+									obj.title == geocoded["region"]
 								end
 
 								if states.length == 0
@@ -169,6 +171,7 @@ namespace :restnap do
 								end
 
 								if states.length == 1
+									puts "    Using state #{states[0].title}"
 									# We have a state, now look for a city.
 									cities = ::Locality.view("by_path", :startkey => [countries[0].id, states[0].id], :endkey => [countries[0].id, states[0].id, {}],
 																		:reduce => false).select { |obj| obj.title == geocoded["locality"] }
@@ -187,48 +190,56 @@ namespace :restnap do
 									end
 
 									if cities.length == 1
-										raise
-=begin
-											# TODO: Make this not be stupid
-											places = ::Place.view("by_title", :key => parsed["name"], :reduce => false)
+										puts "    Using city #{cities[0].title}"
+
+										# Look up a hood
+										hoods = ::Neighborhood.view("by_path", :startkey => [countries[0].id, states[0].id, cities[0].id],
+																			  :endkey => [countries[0].id, states[0].id, cities[0].id, {}],
+																			  :reduce => false).select { |obj| obj.title == geocoded["neighborhood"] }
+										if hoods.length == 0 && !geocoded["neighborhood"].nil? && geocoded["neighborhood"].length > 0
+											# Create a hood!
+											puts "--- Creating new neighborhood #{geocoded["neighborhood"]}"
+											hood = Neighborhood.new
+											hood.id = UUIDTools::UUID.random_create.to_s
+											hood.path = [countries[0].id, states[0].id, cities[0].id, hood.id]
+											hood.title = geocoded["neighborhood"]
+											hood.created_by = "_system/RestNap/FacebookExperiment"
+											hood.updated_by = "_system/RestNap/FacebookExperiment"
+											hood.owned_by = "_system"
+											hood.save
+											hoods = [hood]
+										end
+
+										if hoods.length == 1
+											puts "    Using neighborhood #{hoods[0].title}"
+
+											places = ::Place.view("by_path", :startkey => [countries[0].id, states[0].id, cities[0].id, hoods[0].id],
+																			 :endkey => [countries[0].id, states[0].id, cities[0].id, hoods[0].id, {}],
+																			 :reduce => false).select { |obj| obj.title.downcase.strip == parsed["name"].downcase.strip }
+
+											# Check each place to see if we can whittle it down to something that matches.
 											places.each do |place|
-												if place.path.length >= 3
-													# Check if the place is in the city's path
-													if place.path[0] == countries[0].id && place.path[1] == states[0].id && place.path[2] == city.id
-														puts "    Place ID=#{place.id} has correct path, checking address"
-														# It is, check the address.
-														if place.address == location["street"] || place.postal_code == location["zip"]
-															puts "    Correct place found! ID=#{place.id} Address=#{place.address} PostalCode=#{place.postal_code}"
-															place.address = location["street"] unless location["street"].blank?
-															place.postal_code = location["zip"] unless location["zip"].blank?
-															place.phone_number = parsed["phone"] unless parsed["phone"].blank?
-															place.url = parsed["website"] unless parsed["website"].blank?
+												if place.address.downcase == geocoded["address"].downcase || place.postal_code == geocoded["postal_code"]
+													puts "    Correct place found! ID=#{place.id} Address=#{place.address} PostalCode=#{place.postal_code}"
+													place.address = geocoded["address"] unless geocoded["street"].blank?
+													place.postal_code = geocoded["postal_code"] unless geocoded["postal_code"].blank?
+													place.phone_number = parsed["phone"] unless parsed["phone"].blank?
+													place.url = parsed["website"] unless parsed["website"].blank?
 
-															if location["latitude"] && location["longitude"]
-																place.geo = [location["latitude"], location["longitude"]]
-															end
-
-															begin
-																place.save
-																puts "    Saved!"
-																break
-															rescue
-																puts "!!! Error saving :("
-															end
-														end
-													else
-														puts "    FB address #{location["street"]} #{location["zip"]} does not match our address of #{place.address} #{place.postal_code}, trying another..."
+													if location["latitude"] && location["longitude"]
+														place.geo = [location["latitude"], location["longitude"]]
 													end
-												else
-													puts "    Place path isn't >= 3 (it's #{place.path.length})"
+
+													begin
+														place.save
+														puts "    Saved!"
+														break
+													rescue
+														puts "!!! Error saving :("
+													end
 												end
 											end
-
-											puts "    Done processing... if it didn't save, we couldn't match #{parsed["name"]}"
-
-											break
 										end
-=end
 									end
 								end
 							else
