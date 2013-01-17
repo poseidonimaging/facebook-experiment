@@ -167,12 +167,28 @@ namespace :restnap do
 									state.save
 									states = [state]
 								end
-									# We have a state, now look for a city.
-									cities = ::Locality.view("by_title", :key => location["city"], :reduce => false)
-									cities.each do |city|
-										if city.path == [countries[0].id, states[0].id, city.id]
-											puts "    Correct city found! ID=#{city.id} Title=#{city.title}"
 
+								if states.length == 1
+									# We have a state, now look for a city.
+									cities = ::Locality.view("by_path", :startkey => [countries[0].id, states[0].id], :endkey => [countries[0].id, states[0].id, {}],
+																		:reduce => false).select { |obj| obj.title == geocoded["locality"] }
+
+									if cities.length == 0
+										puts "--- Creating new city #{geocoded["locality"]}"
+										city = Locality.new
+										city.id = UUIDTools::UUID.random_create.to_s
+										city.path = [countries[0].id, states[0].id, city.id]
+										city.title = geocoded["locality"]
+										city.created_by = "_system/RestNap/FacebookExperiment"
+										city.updated_by = "_system/RestNap/FacebookExperiment"
+										city.owned_by = "_system"
+										city.save
+										cities = [city]
+									end
+
+									if cities.length == 1
+										raise
+=begin
 											# TODO: Make this not be stupid
 											places = ::Place.view("by_title", :key => parsed["name"], :reduce => false)
 											places.each do |place|
@@ -212,6 +228,7 @@ namespace :restnap do
 
 											break
 										end
+=end
 									end
 								end
 							else
