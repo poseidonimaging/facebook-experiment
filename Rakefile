@@ -126,11 +126,12 @@ namespace :restnap do
 
 						# Create the country if needed.
 						if countries.length == 0
-							puts "--- Creating new country #{location["country"]}..."
+							puts "--- Creating new country #{geocoded["country"]}..."
 							country = Country.new
 							country.id = UUIDTools::UUID.random_create.to_s
 							country.path = [country.id]
-							country.title = location["country"]
+							country.title = geocoded["country"]
+							country.abbreviation = geocoded["country_abbreviation"]
 							country.created_by = "_system/RestNap/FacebookExperiment"
 							country.updated_by = "_system/RestNap/FacebookExperiment"
 							country.owned_by = "_system"
