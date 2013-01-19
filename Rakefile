@@ -211,6 +211,18 @@ namespace :restnap do
 											hood.owned_by = "_system"
 											hood.save
 											hoods = [hood]
+										elsif hoods.length == 0 && !geocoded["locality"].nil? && geocoded["locality"].length > 0
+											# Create a hood named after thec ity!
+											puts "--- Creating new neighborhood #{geocoded["locality"]}"
+											hood = Neighborhood.new
+											hood.id = UUIDTools::UUID.random_create.to_s
+											hood.path = [countries[0].id, states[0].id, cities[0].id, hood.id]
+											hood.title = geocoded["locality"]
+											hood.created_by = "_system/RestNap/FacebookExperiment"
+											hood.updated_by = "_system/RestNap/FacebookExperiment"
+											hood.owned_by = "_system"
+											hood.save
+											hoods = [hood]
 										end
 
 										if hoods.length == 1
