@@ -225,7 +225,7 @@ namespace :restnap do
 											hoods = [hood]
 										end
 
-										if hoods.length == 1
+										if hoods.length >= 1
 											puts "    Using neighborhood #{hoods[0].title}"
 
 											places = ::Place.view("by_path", :startkey => [countries[0].id, states[0].id, cities[0].id, hoods[0].id],
