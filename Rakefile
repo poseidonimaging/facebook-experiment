@@ -254,7 +254,11 @@ namespace :restnap do
 													end
 												end
 											end
+										else
+											puts "!!! Place #{parsed["id"]} does not have a neighborhood."
 										end
+									else
+										puts "!!! Place #{parsed["id"]} does not have a city."
 									end
 								end
 							else
