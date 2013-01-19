@@ -262,6 +262,31 @@ namespace :restnap do
 													end
 												end
 											end
+
+											# Check to see if we need to create a place.
+											if places.length == 0 || !place_updated
+												puts "--- Creating place #{parsed["name"]} Address=#{geocoded["address"]} PostalCode=#{geocoded["postal_code"]}"
+												place = Place.new
+												place.id = UUIDTools::UUID.random_create.to_s
+												place.path = [countries[0].id, states[0].id, cities[0].id, hoods[0].id, place.id]
+												place.title = parsed["name"]
+												place.address = geocoded["address"] unless geocoded["address"].blank?
+												place.postal_code = geocoded["postal_code"] unless geocoded["postal_code"].blank?
+												place.phone_number = parsed["phone"] unless parsed["phone"].blank?
+												place.url = parsed["website"] unless parsed["website"].blank?
+												place.facebook_id = parsed["id"]
+
+												if location["latitude"] && location["longitude"]
+													place.geo = [location["latitude"], location["longitude"]]
+												end
+
+												begin
+													place.save
+													puts "    Saved!"
+												rescue
+													puts "!!! Error saving :("
+												end
+											end
 										else
 											puts "!!! Place #{parsed["id"]} does not have a neighborhood."
 										end
