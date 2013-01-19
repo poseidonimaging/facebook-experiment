@@ -195,7 +195,10 @@ namespace :restnap do
 										# Look up a hood
 										hoods = ::Neighborhood.view("by_path", :startkey => [countries[0].id, states[0].id, cities[0].id],
 																			  :endkey => [countries[0].id, states[0].id, cities[0].id, {}],
-																			  :reduce => false).select { |obj| obj.title == geocoded["neighborhood"] }
+																			  :reduce => false).select do |obj|
+																			    obj.title == geocoded["neighborhood"] || obj.title == geocoded["locality"]
+																			  end
+
 										if hoods.length == 0 && !geocoded["neighborhood"].nil? && geocoded["neighborhood"].length > 0
 											# Create a hood!
 											puts "--- Creating new neighborhood #{geocoded["neighborhood"]}"
