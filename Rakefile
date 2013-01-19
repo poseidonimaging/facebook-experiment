@@ -4,6 +4,8 @@ require "json"
 require "uuidtools"
 require "rest_client"
 
+require "lib/address_comparator"
+
 AWS_ACCESS_KEY = "AKIAINPARSP7PEW7I6DA"
 AWS_SECRET_KEY = "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"
 
