@@ -234,25 +234,31 @@ namespace :restnap do
 																			 :endkey => [countries[0].id, states[0].id, cities[0].id, hoods[0].id, {}],
 																			 :reduce => false).select { |obj| obj.title.downcase.strip == parsed["name"].downcase.strip }
 
-											# Check each place to see if we can whittle it down to something that matches.
-											places.each do |place|
-												if place.address.downcase == geocoded["address"].downcase || place.postal_code == geocoded["postal_code"]
-													puts "    Correct place found! ID=#{place.id} Address=#{place.address} PostalCode=#{place.postal_code}"
-													place.address = geocoded["address"] unless geocoded["street"].blank?
-													place.postal_code = geocoded["postal_code"] unless geocoded["postal_code"].blank?
-													place.phone_number = parsed["phone"] unless parsed["phone"].blank?
-													place.url = parsed["website"] unless parsed["website"].blank?
+											place_updated = false
 
-													if location["latitude"] && location["longitude"]
-														place.geo = [location["latitude"], location["longitude"]]
-													end
+											# Check each place we got back to see if we can whittle it down to something that matches.
+											if places.length > 0
+												places.each do |place|
+													if MacroDeck::AddressComparator.compare("#{place.address} #{place.postal_code}", "#{geocoded["address"]} #{geocoded["postal_code"]}")
+														puts "    Correct place found! ID=#{place.id} Address=#{place.address} PostalCode=#{place.postal_code}"
+														place.address = geocoded["address"] unless geocoded["address"].blank?
+														place.postal_code = geocoded["postal_code"] unless geocoded["postal_code"].blank?
+														place.phone_number = parsed["phone"] unless parsed["phone"].blank?
+														place.url = parsed["website"] unless parsed["website"].blank?
+														place.facebook_id = parsed["id"]
 
-													begin
-														place.save
-														puts "    Saved!"
-														break
-													rescue
-														puts "!!! Error saving :("
+														if location["latitude"] && location["longitude"]
+															place.geo = [location["latitude"], location["longitude"]]
+														end
+
+														begin
+															place.save
+															puts "    Saved!"
+															place_updated = true
+															break
+														rescue
+															puts "!!! Error saving :("
+														end
 													end
 												end
 											end
