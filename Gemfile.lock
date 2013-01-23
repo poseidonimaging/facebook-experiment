@@ -7,7 +7,7 @@ GIT
 
 GIT
   remote: git://github.com/ziggythehamster/macrodeck-platform.git
-  revision: 124e69b7eeaa3b26ca4ea93413c70f10be1a0522
+  revision: 1d1732b36d2f3da0dc183f0b72b1014d5f191ca0
   specs:
     macrodeck-platform (1.0.0)
       couchrest (~> 1.0.1)
