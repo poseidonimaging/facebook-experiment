@@ -125,7 +125,7 @@ namespace :restnap do
 				if location && location["street"] && location["street"].length > 0 && location["city"] && location["city"].length > 0 && parsed["name"] && parsed["name"].length > 0
 					geocoded = geocode_address(location["street"], location["city"], location["state"], location["country"])
 
-					if geocoded["country"]
+					if geocoded && geocoded["country"]
 						countries = ::Country.view("by_title", :key => geocoded["country"], :reduce => false)
 
 						# Create the country if needed.
