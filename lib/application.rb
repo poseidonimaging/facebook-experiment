@@ -10,6 +10,7 @@ module MacroDeck
 		SQS_DATA_WITH_LOCATIONS_URL = "https://sqs.us-east-1.amazonaws.com/766921168018/RestNap_OpenGraph_DataWithLocations"
 		SQS_PLACES_URL = "https://sqs.us-east-1.amazonaws.com/766921168018/RestNap_OpenGraph_Places"
 		SQS_USERS_URL = "https://sqs.us-east-1.amazonaws.com/766921168018/RestNap_OpenGraph_Users"
+		SQS_FRIENDS_URL = "https://sqs.us-east-1.amazonaws.com/766921168018/RestNap_OpenGraph_Friends"
 
 		enable :sessions
 		set :public_folder, File.join(File.expand_path(File.dirname(__FILE__)), "..", "public")
@@ -99,6 +100,17 @@ module MacroDeck
 			# Got user info, add the singly token and send it off.
 			users_queue = AWS::SQS.new(:access_key_id => AWS_ACCESS_KEY, :secret_access_key => AWS_SECRET_KEY).queues[SQS_USERS_URL]
 			users_queue.send_message(resp.body)
+
+			if session[:facebook_uid]
+				# Now get your friends
+				resp = HTTParty.get("#{SINGLY_API_BASE}/proxy/facebook/me/friends", {
+					:query => { :access_token => session[:access_token], :limit => 5000 }
+				})
+
+				# Send friends to SQS
+				friends_queue = AWS::SQS.new(:access_key_id => AWS_ACCESS_KEY, :secret_access_key => AWS_SECRET_KEY).queues[SQS_FRIENDS_URL]
+				friends_queue.send_message("{ \"#{session[:facebook_uid]}\": #{resp.body} }")
+			end
 
 			redirect "/"
 		end
