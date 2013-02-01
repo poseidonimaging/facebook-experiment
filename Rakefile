@@ -12,8 +12,25 @@ AWS_SECRET_KEY = "WTA1Vz7kEvoFUyzzN+CiiWrC7oEQWsZiGbqF5+DT"
 SQS_DATA_WITH_LOCATIONS_URL = "https://sqs.us-east-1.amazonaws.com/766921168018/RestNap_OpenGraph_DataWithLocations"
 SQS_PLACES_URL = "https://sqs.us-east-1.amazonaws.com/766921168018/RestNap_OpenGraph_Places"
 SQS_USERS_URL = "https://sqs.us-east-1.amazonaws.com/766921168018/RestNap_OpenGraph_Users"
+SQS_FRIENDS_URL = "https://sqs.us-east-1.amazonaws.com/766921168018/RestNap_OpenGraph_Friends"
 
 GMAPS_GEOCODE_BASE = "http://maps.google.com/maps/api/geocode/json"
+FB_GRAPH_BASE = "https://graph.facebook.com"
+
+# Takes a Facebook ID and returns the public profile
+def get_public_fb_profile(id)
+	puts "    Attempting to get FB profile ID: #{id}"
+
+	resp = RestClient.get("#{FB_GRAPH_BASE}/#{id}", {
+		:content_type => :json,
+		:accept => :json
+	})
+
+	if resp
+		parsed = JSON.parse(resp)
+		return parsed
+	end
+end
 
 # Takes an address and geocodes it with Google.
 def geocode_address(street, city, state, country)
@@ -328,49 +345,125 @@ namespace :restnap do
 				parsed = JSON.parse(msg.body)
 				singly_id = parsed["id"]
 
-				users = ::User.view("by_singly_id", :key => singly_id, :reduce => false)
-
-				if users.length == 0
-					puts "--- Creating new user #{singly_id}..."
-					user = User.new
-					user.id = UUIDTools::UUID.random_create.to_s
-					user.path = [user.id]
-					user.singly_id = singly_id
-					user.created_by = "_system/RestNap/FacebookExperiment"
-					user.updated_by = "_system/RestNap/FacebookExperiment"
-					user.owned_by = user.id
-				elsif users.length == 1
-					puts "--- Updating existing user #{singly_id}..."
-					user = users[0]
-				else
-					raise "!!! #{singly_id} exists more than once!"
-				end
-
-				# Check for a Facebook profile.
 				if parsed["facebook"] && parsed["facebook"].length > 0
+					facebook_id = parsed["facebook"][0]["id"]
+
+					users = ::User.view("by_facebook_id", :key => facebook_id, :reduce => false)
+
+					if users.length == 0
+						puts "--- Creating new user #{facebook_id}..."
+						user = User.new
+						user.id = UUIDTools::UUID.random_create.to_s
+						user.path = [user.id]
+						user.singly_id = singly_id
+						user.facebook_id = facebook_id
+						user.created_by = "_system/RestNap/FacebookExperiment"
+						user.updated_by = "_system/RestNap/FacebookExperiment"
+						user.owned_by = user.id
+					elsif users.length == 1
+						puts "--- Updating existing user #{facebook_id}..."
+						user = users[0]
+					else
+						raise "!!! #{facebook_id} exists more than once!"
+					end
+
+					# Parse FB profile.
 					puts "    Parsing Facebook profile..."
 
 					fb = parsed["facebook"][0]["profile"]
 					user.first_name = fb["first_name"] unless fb["first_name"].nil?
 					user.last_name = fb["last_name"] unless fb["last_name"].nil?
-					user.facebook_id = fb["id"] unless parsed["facebook"][0]["id"].nil?
 					user.facebook_profile = fb
-				else
-					puts "    No Facebook profile to parse :("
-				end
 
-				if user.valid?
-					user.save
-					puts "    User saved! ID=#{user.id}"
-				else
-					puts "    User invalid :("
-					user.errors.each do |err|
-						puts "        #{err.inspect}"
+					if user.valid?
+						user.save
+						puts "    User saved! ID=#{user.id}"
+					else
+						puts "    User invalid :("
+						user.errors.each do |err|
+							puts "        #{err.inspect}"
+						end
 					end
+				else
+					puts "!!! Singly ID #{singly_id} doesn't have a facebook profile!"
 				end
 			end
 
 			puts ">>> Done!"
+		end
+
+		desc "Processes queued friend relationships"
+		task :friends => "macrodeck:boot_platform" do
+			# TODO:
+			# 1. Poll the queue
+			# 2. Make sure we have the source user record. If not, punt it for next run.
+			# 3. Loop over this user record's friends. Create them as needed.
+			# 4. Create relationship records between the different objects.
+
+			friends_queue = AWS::SQS.new(:access_key_id => AWS_ACCESS_KEY, :secret_access_key => AWS_SECRET_KEY).queues[SQS_FRIENDS_URL]
+
+			puts ">>> Polling for friends..."
+
+			friends_queue.poll(:idle_timeout => 10) do |msg|
+				parsed = JSON.parse(msg.body)
+
+				parsed.each_pair do |source_user_id, friends|
+					users = ::User.view("by_facebook_id", :key => source_user_id, :reduce => false)
+
+					if users.length == 1
+						# Yay, we found the user, now do our thing!
+						source_user_uuid = users[0].id
+
+						if friends["data"]
+							friends["data"].each do |friend|
+								friend_profile = get_public_fb_profile(friend["id"])
+								friend_facebook_id = friend_profile["id"]
+
+								# Look up the user (should only be one!)
+								friend_users = ::User.view("by_facebook_id", :key => friend_facebook_id, :reduce => false)
+
+								# Create or choose the active friend.
+								if friend_users.length == 0
+									puts "--- Creating new user #{friend_facebook_id}..."
+									friend_user = User.new
+									friend_user.id = UUIDTools::UUID.random_create.to_s
+									friend_user.path = [friend_user.id]
+									friend_user.facebook_id = friend_facebook_id
+									friend_user.created_by = "_system/RestNap/FacebookExperiment"
+									friend_user.updated_by = "_system/RestNap/FacebookExperiment"
+									friend_user.owned_by = friend_user.id
+								elsif users.length == 1
+									puts "--- Updating existing user #{friend_facebook_id}..."
+									friend_user = friend_users[0]
+								else
+									raise "!!! #{friend_facebook_id} exists more than once!"
+								end
+
+								# Update name.
+								friend_user.first_name = friend_profile["first_name"] unless friend_profile["first_name"].nil?
+								friend_user.last_name = friend_profile["last_name"] unless friend_profile["last_name"].nil?
+
+								# Attempt to save
+								if friend_user.valid?
+									friend_user.save
+									puts "    User saved! ID=#{friend_user.id}"
+								else
+									puts "    User invalid :("
+									friend_user.errors.each do |err|
+										puts "        #{err.inspect}"
+									end
+								end
+
+								# Now search for a relationship.
+
+							end
+						end
+					else
+						# Punt until next run.
+						false
+					end
+				end
+			end
 		end
 	end
 end
