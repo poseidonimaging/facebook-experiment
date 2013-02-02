@@ -454,8 +454,37 @@ namespace :restnap do
 									end
 								end
 
-								# Now search for a relationship.
+								target_user_uuid = friend_user.id
 
+								# Now search for a relationship and create one if it doesn't exist.
+								relationships = ::Relationship.view("by_relationship", :key => [source_user_uuid, "friend", target_user_uuid], :reduce => false, :include_docs => false)
+
+								if relationships["rows"].length == 0
+									puts "--- Creating new relationship: #{source_user_uuid} friend #{target_user_uuid}"
+									relationship = Relationship.new
+									relationship.id = UUIDTools::UUID.random_create.to_s
+									relationship.path = [relationship.id]
+									relationship.source = source_user_uuid
+									relationship.relationship = "friend"
+									relationship.target = target_user_uuid
+									relationship.reciprocal = true
+									relationship.created_by = "_system/RestNap/FacebookExperiment"
+									relationship.updated_by = "_system/RestNap/FacebookExperiment"
+									relationship.owned_by = "_system"
+
+									# Attempt to save
+									if relationship.valid?
+										relationship.save
+										puts "    Relationship saved! ID=#{relationship.id}"
+									else
+										puts "    Relationship invalid :("
+										relationship.errors.each do |err|
+											puts "        #{err.inspect}"
+										end
+									end
+								end
+
+								# TODO: Check for friend deletions.
 							end
 						end
 					else
