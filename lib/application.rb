@@ -24,6 +24,25 @@ module MacroDeck
 			erb :"index.html", :layout => :"layout.html"
 		end
 
+		get "/friends" do
+			pass if session[:access_token].nil? || session[:facebook_uid].nil?
+
+			me = ::User.view("by_facebook_id", :key => session[:facebook_uid], :reduce => false, :include_docs => true)
+			me = me[0] if me.length > 0
+
+			friends = []
+
+			rels = ::Relationship.view("by_relationship", :startkey => [me.id, "friend"], :endkey => [me.id, "friend", {}], :reduce => false, :include_docs => false)
+
+			if rels["rows"] && rels["rows"].length > 0
+				rels["rows"].each do |row|
+					friends << row["key"][2]
+				end
+			end
+
+			erb :"friends.html", :layout => :"layout.html", :locals => { :friends => friends, :me => me }
+		end
+
 		get "/facebook/*" do
 			splat = params.delete("splat")
 			
