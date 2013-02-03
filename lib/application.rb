@@ -32,7 +32,7 @@ module MacroDeck
 
 			@friends = []
 
-			rels = ::Relationship.view("by_relationship", :startkey => [me.id, "friend"], :endkey => [me.id, "friend", {}], :reduce => false, :include_docs => false)
+			rels = ::Relationship.view("by_relationship", :startkey => [@me.id, "friend"], :endkey => [@me.id, "friend", {}], :reduce => false, :include_docs => false)
 
 			if rels["rows"] && rels["rows"].length > 0
 				rels["rows"].each do |row|
