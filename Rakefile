@@ -401,6 +401,8 @@ namespace :restnap do
 			# 4. Create relationship records between the different objects.
 
 			friends_queue = AWS::SQS.new(:access_key_id => AWS_ACCESS_KEY, :secret_access_key => AWS_SECRET_KEY).queues[SQS_FRIENDS_URL]
+			facebook_id_to_uuids = {}
+			uuid_to_facebook_ids = {}
 
 			puts ">>> Polling for friends..."
 
@@ -413,6 +415,10 @@ namespace :restnap do
 					if users.length == 1
 						# Yay, we found the user, now do our thing!
 						source_user_uuid = users[0].id
+
+						# Record this user's UUID.
+						facebook_id_to_uuids[source_user_id] = source_user_uuid
+						uuid_to_facebook_ids[source_user_uuid] = source_user_id
 
 						if friends["data"]
 							friends["data"].each do |friend|
@@ -455,6 +461,8 @@ namespace :restnap do
 								end
 
 								target_user_uuid = friend_user.id
+								facebook_id_to_uuids[friend_facebook_id] = target_user_uuid
+								uuid_to_facebook_ids[target_user_uuid] = friend_facebook_id
 
 								# Now search for a relationship and create one if it doesn't exist.
 								relationships = ::Relationship.view("by_relationship", :key => [source_user_uuid, "friend", target_user_uuid], :reduce => false, :include_docs => false)
@@ -483,8 +491,40 @@ namespace :restnap do
 										end
 									end
 								end
+							end
 
-								# TODO: Check for friend deletions.
+							# Check for friend deletions.
+							fb_ids_you_should_have = friends["data"].collect { |x| x["id"] }
+							fb_ids_you_do_have = []
+							all_your_friend_relationships = ::Relationship.view("by_relationship", :startkey => [source_user_uuid, "friend"], :endkey => [source_user_uuid, "friend", {}], :reduce => false, :include_docs => false)
+
+							if all_your_friend_relationships["rows"] && all_your_friend_relationships["rows"].length > 0
+								all_your_friend_relationships["rows"].each do |rel|
+									fb_ids_you_do_have << uuid_to_facebook_ids[rel["key"][2]]
+								end
+							end
+
+							# Maybe get the list down more.
+							fb_ids_you_should_have.compact!
+							fb_ids_you_should_have.uniq!
+							fb_ids_you_should_have.sort!
+							fb_ids_you_do_have.compact!
+							fb_ids_you_do_have.uniq!
+							fb_ids_you_do_have.sort!
+
+							if fb_ids_you_should_have != fb_ids_you_do_have
+								puts "    OH NO, WE HAVE TO UPDATE FRIENDS! :("
+								fb_ids_to_delete = fb_ids_you_do_have - fb_ids_you_should_have
+								fb_ids_to_delete.each do |id_to_delete|
+									user = ::User.view("by_facebook_id", :key => id_to_delete, :reduce => false, :include_docs => false)
+
+									if user["rows"].length > 0
+										relationship_to_delete = ::Relationship.view("by_relationship", :key => [source_user_uuid, "friend", user["rows"][0]["id"]])
+										if relationship_to_delete
+											relationship_to_delete.destroy
+										end
+									end
+								end
 							end
 						end
 					else
