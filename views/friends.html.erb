@@ -1,9 +1,13 @@
-<p>
-	We think you have <%= @friends.length %> friends. They are:
-</p>
+<% if @me %>
+	<p>
+		We think you have <%= @friends.length %> friends. They are:
+	</p>
 
-<ul>
-	<% @friends.each do |friend| %>
-		<li><%= friend %></li>
-	<% end %>
-</ul>
+	<ul>
+		<% @friends.each do |friend| %>
+			<li><%= friend %></li>
+		<% end %>
+	</ul>
+<% else %>
+	<p>Your user data hasn't loaded yet, so we have no idea if you have friends or not.</p>
+<% end %>
