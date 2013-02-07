@@ -412,15 +412,21 @@ namespace :restnap do
 				parsed.each_pair do |source_user_id, friends|
 					users = ::User.view("by_facebook_id", :key => source_user_id, :reduce => false)
 
+					puts "--- Parsing friends for #{source_user_id}..."
+
 					if users.length == 1
 						# Yay, we found the user, now do our thing!
 						source_user_uuid = users[0].id
+
+						puts "    User mapped successfully to MacroDeck UUID #{source_user_uuid}"
 
 						# Record this user's UUID.
 						facebook_id_to_uuids[source_user_id] = source_user_uuid
 						uuid_to_facebook_ids[source_user_uuid] = source_user_id
 
 						if friends["data"]
+							puts "    Friend data present. There are #{friends["data"].length} friends to parse."
+
 							friends["data"].each do |friend|
 								friend_profile = get_public_fb_profile(friend["id"])
 								friend_facebook_id = friend_profile["id"]
@@ -526,6 +532,8 @@ namespace :restnap do
 									end
 								end
 							end
+						else
+							puts "    Friend data not present."
 						end
 					else
 						# Punt until next run.
