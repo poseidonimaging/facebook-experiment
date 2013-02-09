@@ -331,7 +331,74 @@ namespace :restnap do
 			data_loc_queue.poll(:idle_timeout => 10) do |msg|
 				parsed = JSON.parse(msg.body)
 
-				puts parsed["id"] if parsed["id"]
+				# Check if the data has a place.
+				if parsed["place"]
+					puts "--- Checking on place ID #{parsed["place"]}..."
+
+					# Attempt to get that place.
+					place = Place.view("by_facebook_id", :key => parsed["place"], :reduce => false, :include_docs => false)
+
+					if place["rows"].length == 1
+						place_uuid = place["rows"][0]["id"]
+
+						# Get the user.
+						if parsed["from"] && parsed["from"]["id"]
+							user = User.view("by_facebook_id", :key => parsed["from"]["id"], :reduce => false, :include_docs => false)
+
+							if user["rows"].length == 1
+								user_uuid = user["rows"][0]["id"]
+
+								# Now check the relationship.
+								rels = Relationship.view("by_relationship", :key => [user_uuid, "checkin", place_uuid], :reduce => false, :include_docs => false)
+
+								# Handle multiple checkins at the same place.
+								if rels["rows"].length > 0
+									puts "    Relationship already exists."
+									false
+								else
+									# Create new relationship.
+									puts "--- Creating new relationship: #{user_uuid} checkin #{place_uuid}"
+									relationship = Relationship.new
+									relationship.id = UUIDTools::UUID.random_create.to_s
+									relationship.path = [relationship.id]
+									relationship.source = user_uuid
+									relationship.relationship = "checkin"
+									relationship.facebook_id = parsed["id"]
+									relationship.target = place_uuid
+									relationship.reciprocal = false
+									relationship.created_by = "_system/RestNap/FacebookExperiment"
+									relationship.updated_by = "_system/RestNap/FacebookExperiment"
+									relationship.owned_by = "_system"
+
+									# Attempt to save
+									if relationship.valid?
+										relationship.save
+										puts "    Relationship saved! ID=#{relationship.id}"
+									else
+										puts "    Relationship invalid :("
+										relationship.errors.each do |err|
+											puts "        #{err.inspect}"
+										end
+									end
+								end
+							else
+								puts "    User #{parsed["from"]["id"]} doesn't exist, punting."
+								false
+							end
+						else
+							puts "    Skipping place because the user information is missing."
+						end
+					elsif place["rows"].length > 1
+						puts "!!! Place ID #{parsed["place"]} exists more than once in our system!"
+						false
+					else
+						puts "--- Skipping place ID #{parsed["place"]} because it doesn't exist in our system"
+						false
+					end
+				else
+					# Don't handle this piece of data.
+					false
+				end
 			end
 		end
 
