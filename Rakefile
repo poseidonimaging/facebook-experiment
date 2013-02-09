@@ -325,7 +325,7 @@ namespace :restnap do
 		end
 
 		desc "Processes queued data with locations"
-		task :data_with_locations do
+		task :data_with_locations => "macrodeck:boot_platform" do
 			data_loc_queue = AWS::SQS.new(:access_key_id => AWS_ACCESS_KEY, :secret_access_key => AWS_SECRET_KEY).queues[SQS_DATA_WITH_LOCATIONS_URL]
 
 			data_loc_queue.poll(:idle_timeout => 10) do |msg|
