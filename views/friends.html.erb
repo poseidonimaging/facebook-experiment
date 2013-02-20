@@ -1,13 +1,7 @@
 <% if @me %>
-	<p>
-		We think you have <%= @friends.length %> friends. They are:
-	</p>
-
-	<ul>
-		<% @friends.each do |friend| %>
-			<li><%= friend.first_name %> <%= friend.last_name %></li>
-		<% end %>
-	</ul>
+	<% @place_rels.each do |rel| %>
+		<div class="placedata" data-place-id="<%= rel.target %>" data-friend-id="<%= rel.source %>"></div>
+	<% end %>
 <% else %>
 	<p>Your user data hasn't loaded yet, so we have no idea if you have friends or not.</p>
 <% end %>

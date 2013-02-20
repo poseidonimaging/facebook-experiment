@@ -30,17 +30,17 @@ module MacroDeck
 			me = ::User.view("by_facebook_id", :key => session[:facebook_uid], :reduce => false, :include_docs => true)
 			@me = me[0] if me.length > 0
 
-			@friend_uuids = []
+			@friend_keys = []
 
 			rels = ::Relationship.view("by_relationship", :startkey => [@me.id, "friend"], :endkey => [@me.id, "friend", {}], :reduce => false, :include_docs => false)
 
 			if rels["rows"] && rels["rows"].length > 0
 				rels["rows"].each do |row|
-					@friend_uuids << row["key"][2]
+					@friend_keys << "#{row["key"][2]}/checkin"
 				end
-
-				@friends = ::User.all(:keys => @friend_uuids, :reduce => false)
 			end
+
+			@place_rels = ::Relationship.view("by_relationship", :keys => @friend_keys, :reduce => false, :include_docs => true)
 
 			erb :"friends.html", :layout => :"layout.html"
 		end
