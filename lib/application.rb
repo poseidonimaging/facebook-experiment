@@ -24,6 +24,23 @@ module MacroDeck
 			erb :"index.html", :layout => :"layout.html"
 		end
 
+		# Basic thing to get place/user data.
+		get "/:id.json" do
+			content_type :json
+
+			# Check that you're logged in
+			pass if session[:access_token].nil? || session[:facebook_uid].nil?
+
+			# Get the object
+			obj = ::DataObject.get(params[:id])
+
+			# Make sure it's something we want to give you
+			pass unless [Place, User].include?(obj.class)
+
+			# Return some JSON.
+			obj.to_json
+		end
+
 		get "/friends" do
 			pass if session[:access_token].nil? || session[:facebook_uid].nil?
 
