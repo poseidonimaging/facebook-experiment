@@ -58,6 +58,20 @@ $(document).ready(function () {
 
 			$place.css("background-image", ''.concat("url('", $place.data("cover_image"), "')"));
 		})
+		// Handle updating the count on the top of the page.
+		.on("restnap:place:card_added", function () {
+			if ($("#result_info span").length > 0) {
+				// Increment the place count.
+				var place_count = parseInt($("#result_info span").text());
+				place_count++;
+
+				if (place_count == 1) {
+					$("#result_info span").text(place_count + " place");
+				} else {
+					$("#result_info span").text(place_count + " places");
+				}
+			}
+		})
 		// Handle showing location data.
 		.on("restnap:place:location_available", function (e, data) {
 			var $place = $(e.target);
@@ -233,109 +247,45 @@ function process_facebook_response(result) {
 			// Ensure there's always a place record so we don't attempt to access <undefined>.<whatever>.
 			if (data.place && (data.place.phone || (data.place.location && data.place.location.city))) {
 				if ($("#place_" + data.place.id).length == 0) {
-					var $place = $("#place_template").clone().find("li").first();
+					RestNap.Cards.add({
+						facebook_id: data.place.id,
+						name: data.place.name,
+						time: data.created_time,
+						about: data.place.about,
+						phone: data.place.phone,
+						picture: !!(data.place.picture && !data.place.picture.data.is_silhouette),
+						cover_id: !!(data.place.cover && data.place.cover.cover_id) ? data.place.cover.cover_id : null
+					});
 
-					// Ladies and gentlemen, a really long jQuery chain!
-					$place
-						// Set some stuff on the place object
-						.attr("id", ''.concat("place_", data.place.id))
-						.data("facebook-id", data.place.id)
-						.addClass("vcard")
-						// Hide some stuff that might not always show up.
-						.find(".fb-other-visits")
-							.hide()
-						.end()
-						.find(".fb-about")
-							.hide()
-						.end()
-						.find(".tel")
-							.hide()
-						.end()
-						.find(".adr, .adr *")
-							.hide()
-						.end()
-						// Set timestamp.
-						.find("time")
-							.addClass("timeago")
-							.attr("datetime", data.created_time)
-							.text((new Date(data.created_time)).toString())
-						.end()
-						// Set place name.
-						.find("h4 .fn")
-							.text(data.place.name)
-						.end();
+					$(document).on("restnap:place:card_added", "#place_".concat(data.place.id), function() {
+						// Populate visited with list if we can.
+						if (tags.length > 0 && $place.find(".fb-visit-with-list").text() == "by yourself") {
+							var visit_with_list = [];
 
-					// Populate visited with list if we can.
-					if (tags.length > 0 && $place.find(".fb-visit-with-list").text() == "by yourself") {
-						var visit_with_list = [];
+							// Loop over the tags and add the people you've been with but not yourself.
+							for (var t = 0; t < tags.length; t++) {
+								// Don't add yourself.
+								if (tags[t].id != fb_current_user_id) {
+									visit_with_list.push(tags[t].name);
 
-						// Loop over the tags and add the people you've been with but not yourself.
-						for (var t = 0; t < tags.length; t++) {
-							// Don't add yourself.
-							if (tags[t].id != fb_current_user_id) {
-								visit_with_list.push(tags[t].name);
+									// Add to the list in the top-right.
+									var visit_count_person_html = $.mustache(templates.visit_count_person, {
+										place_id: data.place.id,
+										person_id: tags[t].id,
+										person_name: tags[t].name,
+										visit_count: 1,
+										hidden: true
+									});
+									$place.find(".fb-visit-counts").append(visit_count_person_html);
+								}
+							}
 
-								// Add to the list in the top-right.
-								var visit_count_person_html = $.mustache(templates.visit_count_person, {
-									place_id: data.place.id,
-									person_id: tags[t].id,
-									person_name: tags[t].name,
-									visit_count: 1,
-									hidden: true
-								});
-								$place.find(".fb-visit-counts").append(visit_count_person_html);
+							// Now use array_to_sentence to make it magic.
+							if (visit_with_list.length > 0) {
+								$place.find(".fb-visit-with-list").text("with " + array_to_sentence(visit_with_list));
 							}
 						}
-
-						// Now use array_to_sentence to make it magic.
-						if (visit_with_list.length > 0) {
-							$place.find(".fb-visit-with-list").text("with " + array_to_sentence(visit_with_list));
-						}
-					}
-
-					// Add about text if any.
-					if (data.place.about) {
-						$place.find(".fb-about").text(data.place.about);
-					}
-
-					// Add phone number if any.
-					if (data.place.phone) {
-						$place.find(".tel").text(data.place.phone);
-					}
-
-					// Set photo if any.
-					if (data.place.picture && !data.place.picture.data.is_silhouette) {
-						$place.find("img")
-							.attr("src", "https://graph.facebook.com/" + data.place.id + "/picture?width=150&height=150")
-							.addClass("fb-photo");
-					}
-
-					// so we can fade it in after adding it.
-					$place.hide();
-
-					// Now add the place and fade it in.
-					$("#places").append($place);
-					$place.fadeIn("slow");
-
-					// If there's a cover image, fetch the highest resolution one we can get.
-					if (data.place.cover && data.place.cover.cover_id) {
-						get_cover_image(data.place.id, data.place.cover.cover_id);
-					}
-
-					// Fire an event that we have location information!
-					if (data.place.location) {
-						$place.trigger("restnap:place:location_available", data.place.location);
-					}
-
-					// Increment the place count.
-					var place_count = parseInt($("#result_info span").text());
-					place_count++;
-
-					if (place_count == 1) {
-						$("#result_info span").text(place_count + " place");
-					} else {
-						$("#result_info span").text(place_count + " places");
-					}
+					});
 				} else {
 					// Place already exists in the DOM, update the existing item then.
 					var $place = $("#place_" + data.place.id);
