@@ -10,6 +10,7 @@ RestNap.Cards = {
 	// - phone
 	// - picture (true/false)
 	// - cover_id
+	// - data (data attributes to set)
 	// - location.locality (city)
 	// - location.street_address
 	// - location.region (state)
@@ -64,6 +65,13 @@ RestNap.Cards = {
 			$place.find("img")
 				.attr("src", "https://graph.facebook.com/" + data.facebook_id + "/picture?width=150&height=150")
 				.addClass("fb-photo");
+		}
+
+		// Set data attributes.
+		if (data.data) {
+			$.each(data.data, function (key, value) {
+				$place.data(key, value);
+			});
 		}
 
 		// so we can fade it in after adding it.
