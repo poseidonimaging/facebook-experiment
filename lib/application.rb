@@ -43,7 +43,7 @@ module MacroDeck
 		end
 
 		get "/friends" do
-			pass if session[:access_token].nil? || session[:facebook_uid].nil?
+			redirect to("/") if session[:access_token].nil? || session[:facebook_uid].nil?
 
 			@extra_scripts = ["js/friends_feed.js"]
 
