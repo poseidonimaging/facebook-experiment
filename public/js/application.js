@@ -184,7 +184,7 @@ function get_cover_image(place_id, cover_id) {
 
 	$.ajax({
 		method: "GET",
-		url: "".concat("/facebook/", cover_id, "?fields=images"),
+		url: "".concat("/singly/facebook/", cover_id, "?fields=images"),
 		success: function (result) {
 			if (result.images) {
 				$place.data("cover_image", result.images[0].source);
@@ -198,7 +198,7 @@ function get_cover_image(place_id, cover_id) {
 function get_locations_from_url(endpoint) {
 	$.ajax({
 		method: "GET",
-		url: "".concat("/facebook/", endpoint),
+		url: "".concat("/singly/facebook/", endpoint),
 		success: process_facebook_response
 	});
 }
