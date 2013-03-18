@@ -15,6 +15,7 @@ require "macrodeck-config"
 
 # The application
 require "application"
+require "singly_controller"
 
 # Load the config file.
 puts ">>> Loading configuration."
@@ -27,4 +28,8 @@ MacroDeck::PlatformDataObjects.define
 
 puts ">>> MacroDeck Platform started."
 
-run MacroDeck::SinglyController
+map "/singly" do
+	run MacroDeck::SinglyController
+end
+
+run MacroDeck::RestNap2Controller
