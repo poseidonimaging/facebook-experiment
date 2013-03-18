@@ -21,6 +21,7 @@ module MacroDeck
 		end
 
 		get "/" do
+			@extra_scripts = ["js/my_feed.js"]
 			erb :"index.html", :layout => :"layout.html"
 		end
 
@@ -43,6 +44,8 @@ module MacroDeck
 
 		get "/friends" do
 			pass if session[:access_token].nil? || session[:facebook_uid].nil?
+
+			@extra_scripts = ["js/friends_feed.js"]
 
 			me = ::User.view("by_facebook_id", :key => session[:facebook_uid], :reduce => false, :include_docs => true)
 			@me = me[0] if me.length > 0
