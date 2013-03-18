@@ -1,7 +1,14 @@
 <% if @me %>
+	<div id="result_info" class="alert alert-info">
+		<button type="button" class="close" data-dismiss="alert">&times;</button>
+		<strong>Sweet!</strong> We found <span>0 places</span> someone you know has been to!
+	</div>
+
 	<% @place_rels.each do |rel| %>
 		<div class="placedata" data-place-id="<%= rel.target %>" data-friend-id="<%= rel.source %>"></div>
 	<% end %>
+
+	<ul id="places" class="media-list"></ul>
 <% else %>
 	<p>Your user data hasn't loaded yet, so we have no idea if you have friends or not.</p>
 <% end %>
