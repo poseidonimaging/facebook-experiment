@@ -80,5 +80,10 @@
     <script src="js/analytics.js"></script>
     <script src="js/gmaps_themes/fresh.js"></script>
     <script src="js/gmaps_themes/night.js"></script>
+    <% if defined?(@extra_scripts) %>
+      <% @extra_scripts.each do |script| %>
+        <script src="<%= script %>"></script>
+      <% end %>
+    <% end %>
   </body>
 </html>
