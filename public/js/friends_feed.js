@@ -22,6 +22,7 @@ $(window).on("load", function () {
 					facebook_id: result.facebook_id,
 					name: result.title,
 					phone: result.phone_number,
+					time: $placedata.data("timestamp"),
 					location: {
 						street_address: result.address,
 						postal_code: result.postal_code,
