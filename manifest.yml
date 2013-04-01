@@ -8,7 +8,7 @@ applications:
         exec: 
         mem: 512M
       name: rack
-    url: fb.restlessnapkin.com
+    url: restnap.aws.af.cm
     name: restnap-facebook-experiment
     instances: 1
     infra: aws
