@@ -18,7 +18,7 @@ $(window).on("load", function () {
 					longitude = result.geo[1];
 				}
 
-				RestNap.Cards.add({
+				var card_data = {
 					facebook_id: result.facebook_id,
 					name: result.title,
 					phone: result.phone_number,
@@ -28,6 +28,20 @@ $(window).on("load", function () {
 						postal_code: result.postal_code,
 						latitude: latitude,
 						longitude: longitude
+					}
+				};
+
+				$.ajax({
+					method: "GET",
+					url: "".concat("/", $placedata.data("friend-id"), ".json"),
+					success: function (result) {
+						card_data.visit_by = {
+							first_name: result.first_name,
+							last_name: result.last_name,
+							facebook_id: result.facebook_id
+						};
+
+						RestNap.Cards.add(card_data);
 					}
 				});
 			}
