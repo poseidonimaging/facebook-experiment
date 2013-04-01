@@ -6,6 +6,7 @@ module MacroDeck
 
 		get "/" do
 			@extra_scripts = ["js/my_feed.js"]
+			@page = "my_feed"
 			erb :"index.html", :layout => :"layout.html"
 		end
 
@@ -29,6 +30,7 @@ module MacroDeck
 		get "/friends" do
 			redirect to("/") if session[:access_token].nil? || session[:facebook_uid].nil?
 
+			@page = "friends"
 			@extra_scripts = ["js/friends_feed.js"]
 
 			me = ::User.view("by_facebook_id", :key => session[:facebook_uid], :reduce => false, :include_docs => true)
