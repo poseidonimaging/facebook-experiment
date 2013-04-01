@@ -40,6 +40,11 @@ $(document)
 	.on("restnap:place:card_added", function (e, data) {
 		var $place = $(e.target);
 
+		$place
+			.find(".timeago")
+				.timeago()
+			.end();
+
 		if ($("#result_info span").length > 0) {
 			// Increment the place count.
 			var place_count = parseInt($("#result_info span").text());
