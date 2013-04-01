@@ -28,7 +28,8 @@
         <div class="container">
           <a class="brand" href="/">RestlessNapkin</a>
           <ul class="nav">
-             <li class="active"><a href="#">Facebook Experiment</a></li>
+            <li<% if @page == "my_feed" %> class="active"<% end %>><a href="/">My Feed</a></li>
+            <li<% if @page == "friends" %> class="active"<% end %>><a href="/friends">Friends</a></li>
           </ul>
           <div class="pull-right">
             <% if session && session[:access_token] %>
