@@ -5,7 +5,7 @@
 	</div>
 
 	<% @place_rels.each do |rel| %>
-		<div class="placedata" data-place-id="<%= rel.target %>" data-friend-id="<%= rel.source %>"></div>
+		<div class="placedata" data-place-id="<%= rel.target %>" data-friend-id="<%= rel.source %>" data-timestamp="<%= rel.created_at %>"></div>
 	<% end %>
 
 	<ul id="places" class="media-list"></ul>
