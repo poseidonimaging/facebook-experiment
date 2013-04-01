@@ -67,6 +67,11 @@ RestNap.Cards = {
 				.addClass("fb-photo");
 		}
 
+		// If this is a "visit by", add that information.
+		if (data.visit_by) {
+			$place.find(".fb-visit-with-list").text("by ".concat(data.visit_by.first_name, " ", data.visit_by.last_name));
+		}
+
 		// Set data attributes.
 		if (data.data) {
 			$.each(data.data, function (key, value) {
