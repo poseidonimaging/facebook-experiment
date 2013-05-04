@@ -17,6 +17,8 @@ module RestlessNapkin
 		# 	The country to geocode.
 		# @param [true, false] log
 		# 	If true, write debugging to STDOUT. Defaults to true.
+		# @return [Hash, nil] The response from Google, with some parsing done to it.
+		#  	If there was a problem, nil is returned.
 		def geocode_address(street, city, state, country, log=true)
 			address = "#{street}, #{city}, #{state}, #{country}"
 
