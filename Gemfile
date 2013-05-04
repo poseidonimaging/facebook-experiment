@@ -3,7 +3,7 @@ source 'http://gems.github.com'
 
 # App support
 gem "sinatra"
-gem "system_timer"
+gem "system_timer", :platforms => :ruby # Does not work on Windows
 gem "omniauth-singly"
 gem "httparty"
 gem "json"
