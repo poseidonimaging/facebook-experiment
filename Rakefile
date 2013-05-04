@@ -6,6 +6,7 @@ require "rest_client"
 
 require "lib/address_comparator"
 require "lib/restnap/utils/geocode_address"
+require "lib/restnap/utils/get_public_fb_profile"
 
 AWS_ACCESS_KEY = "AKIAINPARSP7PEW7I6DA"
 AWS_SECRET_KEY = "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"
@@ -17,20 +18,6 @@ SQS_FRIENDS_URL = "https://sqs.us-east-1.amazonaws.com/766921168018/RestNap_Open
 
 FB_GRAPH_BASE = "https://graph.facebook.com"
 
-# Takes a Facebook ID and returns the public profile
-def get_public_fb_profile(id)
-	puts "    Attempting to get FB profile ID: #{id}"
-
-	resp = RestClient.get("#{FB_GRAPH_BASE}/#{id}", {
-		:content_type => :json,
-		:accept => :json
-	})
-
-	if resp
-		parsed = JSON.parse(resp)
-		return parsed
-	end
-end
 Dir.glob("lib/tasks/*.rake").each { |r| import r }
 
 namespace :restnap do
